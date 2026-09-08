@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Define and verify the config-to-API-to-player-to-control data flow and boundary contracts."}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Reuse the existing ZLMRTCClient integration and centralize config/API payload handling."}

@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Review runtime config validation, WVP response mapping, playback lifecycle, and PTZ request boundaries."}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Check for duplicated API parsing, player lifecycle logic, and scope creep."}

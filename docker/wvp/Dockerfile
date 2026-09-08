@@ -54,7 +54,8 @@ RUN apt-get update && \
 
 COPY . /build
 WORKDIR /build
-RUN ls && mvn clean package -Dmaven.test.skip=true
+COPY ./docker/wvp/m2repo/no /root/.m2/repository/no
+RUN ls && mvn clean package -Dmaven.test.skip=true -Dmaven.gitcommitid.skip=true
 WORKDIR /build/target
 #ȷ���ļ���һ��
 RUN mv wvp-pro-*.jar wvp.jar
@@ -78,7 +79,8 @@ ENTRYPOINT ["java", "-Xms512m", "-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError", 
     #git clone https://gitee.com/pan648540858/wvp-GB28181-pro.git
 #
 #RUN cd /home/wvp-GB28181-pro && \
-    #mvn clean package -Dmaven.test.skip=true && \
+COPY ./docker/wvp/m2repo/no /root/.m2/repository/no
+    #mvn clean package -Dmaven.test.skip=true -Dmaven.gitcommitid.skip=true && \
     #cp /home/wvp-GB28181-pro/target/*.jar /opt/wvp/wvp.jar
 #
 #WORKDIR /opt/wvp

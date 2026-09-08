@@ -12,6 +12,9 @@ spring:
         multipart:
             max-file-size: 10MB
             max-request-size: 100MB
+    web:
+        resources:
+            static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:/opt/wvp/static/
     data:
       # REDIS数据库配置
       redis:
@@ -42,7 +45,7 @@ spring:
 
 #[可选] 监听的HTTP端口, 网页和接口调用都是这个端口
 server:
-    port: 18978
+    port: 18080
     ssl:
         # [可选] 是否开启HTTPS访问
         # docker里运行，内部不需要HTTPS
@@ -83,7 +86,7 @@ media:
   id: polaris
   # [必须修改] ZLM 内网IP与端口
   ip: ${ZLM_HOST:127.0.0.1}
-  http-port: 80
+  http-port: 18978
   # [可选] 返回流地址时的ip，置空使用 media.ip
   stream-ip: ${Stream_IP}
   # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
