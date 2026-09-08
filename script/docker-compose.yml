@@ -1,0 +1,175 @@
+services:
+  mysql:
+    image: mysql:8.4.9
+    container_name: wvp-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "Wvp@2026!mysql"
+      MYSQL_DATABASE: "wvp2"
+      MYSQL_USER: "wvp"
+      MYSQL_PASSWORD: "Wvp@2026!mysql"
+      TZ: "Asia/Shanghai"
+    ports:
+      - "13306:3306"
+    volumes:
+      # 数据挂载
+      - /home/docker/wvp2/data/:/var/lib/mysql/
+      # 配置挂载
+      - /home/docker/wvp2/mysql/conf/:/etc/mysql/conf.d/
+      # 首次启动建表脚本（相对 compose 目录，随 script 目录一起上传）
+      - /home/docker/wvp2/sql/初始化-mysql-2.7.4.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    privileged: true
+    networks:
+      - wvp-network
+
+  redis:
+    image: redis:8.6.3
+    container_name: wvp-redis
+    restart: unless-stopped
+    ports:
+      - "16379:6379"
+    environment:
+      # 时区上海
+      TZ: Asia/Shanghai
+    volumes:
+      # 配置文件
+      - /home/docker/wvp2/redis/conf:/redis/config:rw
+      # 数据文件
+      - /home/docker/wvp2/redis/data/:/redis/data/:rw
+    command: "redis-server /redis/config/redis.conf"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a 'cy*889900' ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    privileged: true
+    networks:
+      - wvp-network
+
+  zlmediakit:
+    image: zlmediakit/zlmediakit:master_py
+    container_name: zlmediakit
+    restart: unless-stopped
+    environment:
+      TZ: "Asia/Shanghai"
+    ports:
+      - "18978:18978/tcp"                      # HTTP-FLV / HLS / API
+      # - "8443:8443/tcp"
+      # - "554:554/tcp"                      # RTSP，可选
+      # - "1935:1935/tcp"                    # RTMP，可选
+      - "10003:10003/udp"                  # RTP 单端口收流
+      - "10003:10003/tcp"                  # RTP TCP，可选
+      # - "30000-30500:30000-30500/udp"      # RTP 多端口收流
+      # - "30000-30500:30000-30500/tcp"      # RTP 多端口收流
+      # - "18000:8000/udp"                    # WebRTC，可选
+      # - "18000:8000/tcp"                    # WebRTC TCP，可选
+      # - "19000:9000/udp"
+    volumes:
+      - ./zlm/config.ini:/opt/media/conf/config.ini:ro
+      - ./zlm/logs:/opt/media/bin/log
+      - ./zlm/record:/opt/media/bin/www/record
+    ulimits:
+      nofile:
+        soft: 100000
+        hard: 100000
+    networks:
+      - wvp-network
+  wvp:
+    build:
+      context: /home/docker/wvp2/jar
+      dockerfile: Dockerfile
+    container_name: wvp-main
+    restart: unless-stopped
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      zlmediakit:
+        condition: service_started
+
+    environment:
+      TZ: "Asia/Shanghai"
+
+      # 必须选择 Docker 配置。
+      # 源码中的 application.yml 默认启用的是 274-dev。
+      SPRING_PROFILES_ACTIVE: "docker"
+
+      # MySQL：容器之间使用服务名和容器端口
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=Asia/Shanghai&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true"
+      SPRING_DATASOURCE_USERNAME: "wvp"
+      SPRING_DATASOURCE_PASSWORD: "Wvp@2026!mysql"
+
+      # Redis
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_DB: "6"
+      REDIS_PWD: "cy*889900"
+
+      # SIP/GB28181
+      WVP_HOST: "0.0.0.0"
+      WVP_PORT: "5060"
+      WVP_DOMAIN: "3402000000"
+      WVP_ID: "34020000002000000001"
+      WVP_PWD: "sua07f18"
+
+      # ZLMediaKit 容器内部地址
+      ZLM_HOST: "zlmediakit"
+      ZLM_PORT: "18978"
+
+      # 必须与 config.ini 完全一致
+      MEDIA_ID: "zlm-01"
+      MEDIA_SECRET: "TfpuBvwlH2C7sVOnOdnpNLnZUxP6ZUNu"
+
+      # ZLM 回调 WVP 时使用 Docker 服务名
+      MEDIA_HOOK_IP: "wvp"
+
+      # 外部摄像机向这个公网IP发送RTP
+      MEDIA_SDP_IP: "192.168.1.100"
+
+      # 平台返回的播放地址IP
+      MEDIA_STREAM_IP: "192.168.1.100"
+
+      MEDIA_RTP_ENABLE: "false"
+      MEDIA_RTP_PORT_RANGE: "30000,30500"
+      MEDIA_RTP_SEND_PORT_RANGE: "30000,30500"
+
+    ports:
+      # 调试阶段允许外部访问。
+      # 正式部署后建议使用防火墙、VPN或Nginx限制管理页面。
+      - "18080:18080/tcp"
+
+      # GB28181 SIP
+      # SIP服务器端口
+      - "8160:5060/tcp"
+      - "8160:5060/udp"
+
+    volumes:
+      # JWT 密钥持久化（jwkFile 见 application-docker.yml），避免重启后 token 失效
+      - wvp-config:/opt/wvp/config
+      # 运行日志
+      - /home/docker/wvp2/jar/logs:/opt/wvp/logs
+
+    networks:
+      - wvp-network
+
+networks:
+  wvp-network:
+    name: wvp-network
+    driver: bridge
+
+volumes:
+  wvp-config:

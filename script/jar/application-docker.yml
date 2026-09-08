@@ -1,0 +1,71 @@
+spring:
+    # 上传文件大小限制
+    servlet:
+        multipart:
+            max-file-size: 10MB
+            max-request-size: 100MB
+    cache:
+        type: redis
+    data:
+        redis:
+            # Redis 服务器地址（容器间用服务名）
+            host: ${REDIS_HOST:127.0.0.1}
+            port: ${REDIS_PORT:6379}
+            database: ${REDIS_DB:6}
+            password: ${REDIS_PWD:}
+            timeout: 10000
+    # 数据源：默认值仅作占位，实际由 SPRING_DATASOURCE_URL/USERNAME/PASSWORD 环境变量覆盖
+    datasource:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://127.0.0.1:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
+        username: root
+        password: root123
+# WVP 监听的 HTTP 端口，网页和接口都是这个端口
+server:
+    port: 18080
+
+# 作为28181服务器的配置
+sip:
+    # 监听网卡，0.0.0.0 表示全部
+    ip: ${WVP_HOST:0.0.0.0}
+    # 28181服务监听端口
+    port: ${WVP_PORT:5060}
+    domain: ${WVP_DOMAIN:3402000000}
+    id: ${WVP_ID:34020000002000000001}
+    # 设备公共认证密码
+    password: ${WVP_PWD:admin123}
+
+# ZLM 流媒体服务器配置
+media:
+    # 必须与 config.ini 的 general.mediaServerId 一致
+    id: ${MEDIA_ID:zlm-01}
+    # ZLM 容器内部地址
+    ip: ${ZLM_HOST:127.0.0.1}
+    # 必须与 config.ini 的 http.port 一致
+    http-port: ${ZLM_PORT:18978}
+    # 必须与 config.ini 的 api.secret 一致
+    secret: ${MEDIA_SECRET:035c73f7-bb6b-4889-a715-d9eb2d1925cc}
+    # ZLM 回调 WVP 使用的地址（跨容器部署时必须是 WVP 的服务名）
+    hook-ip: ${MEDIA_HOOK_IP:127.0.0.1}
+    rtp:
+        # 多端口模式，与 config.ini 的 rtp_proxy.port_range 以及 compose 端口映射保持一致
+        enable: ${MEDIA_RTP_ENABLE:false}
+        port-range: ${MEDIA_RTP_PORT_RANGE:30000,30500}
+        send-port-range: ${MEDIA_RTP_SEND_PORT_RANGE:30000,30500}
+    # 录像辅助服务端口，0 表示不使用
+    record-assist-port: 0
+    # 设备推流目标地址（对外可达的公网/内网 IP）
+    sdp-ip: ${MEDIA_SDP_IP:127.0.0.1}
+    # 返回给播放器的流地址 IP
+    stream-ip: ${MEDIA_STREAM_IP:127.0.0.1}
+
+user-settings:
+    record-push-live: true
+    auto-apply-play: true
+    device-register-time-max-count: 100
+    device-register-time-ttl-hours: 3
+    device-keepalive-time-max-count: 100
+    device-keepalive-time-ttl-hours: 1
+    # JWT 密钥文件，挂载在 named volume wvp-config 中持久化
+    jwkFile: /opt/wvp/config/jwk.json
