@@ -72,6 +72,8 @@ services:
      #- "45540:45540/tcp"   # [收流]RTSPS 无效
       - "${MediaRtp:-10000}:${MediaRtp:-10000}/tcp"   # [收流]RTP
       - "${MediaRtp:-10000}:${MediaRtp:-10000}/udp"   # [收流]RTP
+      - "${MediaRtc:-8970}:${MediaRtc:-8970}/udp"   # [播流]WebRTC媒体端口(STUN/DTLS/SRTP)
+      - "${MediaRtc:-8970}:${MediaRtc:-8970}/tcp"   # [播流]WebRTC媒体端口(UDP不通时TCP回退)
       - "18978:18978"
     volumes:
       - ./volumes/video:/opt/media/bin/www/record/

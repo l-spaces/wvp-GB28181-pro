@@ -73,8 +73,8 @@ services:
       - "10000:10000/tcp"                  # RTP TCP，可选
       # - "30000-30100:30000-30100/udp"      # RTP 多端口收流
       # - "30000-30100:30000-30100/tcp"      # RTP 多端口收流
-      # - "18000:8000/udp"                    # WebRTC，可选
-      # - "18000:8000/tcp"                    # WebRTC TCP，可选
+      - "8970:8970/udp"                    # WebRTC媒体端口(STUN/DTLS/SRTP)
+      - "8970:8970/tcp"                    # WebRTC媒体端口(UDP不通时TCP回退)
       # - "19000:9000/udp"
     volumes:
       - ./zlm/config.ini:/opt/media/conf/config.ini:ro
@@ -122,7 +122,7 @@ services:
       # SIP/GB28181
       WVP_HOST: "0.0.0.0"
       # 前端接入信息展示的IP
-      WVP_SHOW_IP: "1.2.3.4"
+      WVP_SHOW_IP: "192.168.1.100"
       WVP_PORT: "8160"
       WVP_DOMAIN: "5132210000"
       WVP_ID: "51322100002000000001"
@@ -140,10 +140,10 @@ services:
       MEDIA_HOOK_IP: "wvp"
 
       # 外部摄像机向这个公网IP发送RTP
-      MEDIA_SDP_IP: "1.2.3.4"
+      MEDIA_SDP_IP: "192.168.1.100"
 
       # 平台返回的播放地址IP
-      MEDIA_STREAM_IP: "1.2.3.4"
+      MEDIA_STREAM_IP: "192.168.1.100"
 
       MEDIA_RTP_ENABLE: "false"
       MEDIA_RTP_PORT_RANGE: "30000,30100"

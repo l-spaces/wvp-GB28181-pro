@@ -46,11 +46,12 @@ docker logs -f wvp-main     # 看到三条即健康：SIP SERVER 启动成功 / 
 | 8160 | 8160 | TCP+UDP | SIP 信令（设备注册入口） |
 | 18978 | 18978 | TCP | ZLM 流播放（HTTP-FLV / HLS / WS-FLV） |
 | 10000 | 10000 | UDP(+TCP) | RTP 收流（设备推流，单端口模式） |
+| 8970 | 8970 | UDP+TCP | ZLM WebRTC 媒体端口（STUN/DTLS/SRTP；信令仍走 18978） |
 | 13306 | 3306 | TCP | MySQL 调试（公网部署必须关闭/注释） |
 | 16379 | 6379 | TCP | Redis 调试（公网部署必须关闭/注释） |
 
 注释掉的可选端口（compose 中按需打开并放行防火墙）：8443（HTTPS流）、554（RTSP）、
-1935（RTMP）、18000/udp（WebRTC）、19000/udp（SRT）、30000-30100（多端口 RTP 模式）。
+1935（RTMP）、19000/udp（SRT）、30000-30100（多端口 RTP 模式）。
 
 ## 四、设备接入参数（当前配置值）
 
@@ -74,6 +75,7 @@ docker logs -f wvp-main     # 看到三条即健康：SIP SERVER 启动成功 / 
 | ZLM 鉴权密钥 | `MEDIA_SECRET` | `[api] secret` | `secret`（占位符默认值） |
 | ZLM 节点 ID | `MEDIA_ID` | `[general] mediaServerId` | `media.id` |
 | WVP SIP 端口 | `WVP_PORT` + 映射 | — | `sip.port` |
+| WebRTC 媒体端口 | 映射（8970） | `[rtc] port`、`tcpPort` | — |
 
 关键环境变量：`MEDIA_SDP_IP`（设备推流目标 IP）、`MEDIA_STREAM_IP`（播放地址 IP）、
 `WVP_SHOW_IP`（页面展示 IP）——三者通常相同，都填**客户端可达的服务器 IP**。
@@ -100,7 +102,7 @@ docker compose restart zlmediakit  # 只改了 zlm/config.ini
 
 ## 七、公网部署
 
-1. 放行端口：**8160/tcp+udp、10000/udp、18978/tcp**（必须）；18080/tcp 视需要
+1. 放行端口：**8160/tcp+udp、10000/udp、18978/tcp**（必须）、**8970/udp+tcp**（WebRTC 播放需要）；18080/tcp 视需要
    （管理界面，建议安全组限制来源 IP）；**注释掉 13306 和 16379 映射**。
 2. 改 IP 参数：`MEDIA_SDP_IP`、`MEDIA_STREAM_IP`、`WVP_SHOW_IP` 全部改为公网 IP。
 3. 云服务器安全组和系统防火墙（firewalld/ufw）两层都要放行。
@@ -119,3 +121,12 @@ docker compose restart zlmediakit  # 只改了 zlm/config.ini
    SIP 信令成功但收不到流。
 7. **改 ZLM HTTP 端口**：除三处配置外，如 WVP 已运行过，数据库 `wvp_media_server`
    表的 `http_port` 也要同步更新（WVP 以数据库记录的端口连接 ZLM）。
+8. **WebRTC 播放**：媒体端口 8970（UDP+TCP，ZLM 要求 NAT/映射环境下内外端口必须一致）；
+   还需 `[rtc] externIP` 设为客户端可达的公网 IP——留空时 ZLM 在 ICE answer 里下发容器
+   内网 IP，浏览器无法连接（此版 ZLM 的 externIP 支持填 `$EXTERN_IP` 形式的环境变量）。
+   另外浏览器 Chrome ≤135 不支持 WebRTC 接收 H265，摄像头需推 H264。
+9. **WVP 重启后 ZLM keepalive 失效**：WVP 冷启动首连 ZLM 时调用 setServerConfig 热更新
+   hook 配置，该 reload 会令 ZLM(master_py 版) 的 keepalive 定时器失效——WVP 每 20s 报
+   `[ZLM-心跳超时]`（主动探测兜底，不影响点播功能）。**规程：每次重启 wvp 后，必须再
+   单独执行一次 `docker compose restart zlmediakit`**（ZLM 单独重启时读 config.ini 已
+   写死的 hook，keepalive 恢复正常）。

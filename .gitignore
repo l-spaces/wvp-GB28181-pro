@@ -35,3 +35,4 @@ certificates
 /snap/
 /config/
 /script/jar/wvp.jar
+/demo/public/config.json
