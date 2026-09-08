@@ -30,9 +30,11 @@ sip:
     # 监听网卡，0.0.0.0 表示全部
     ip: ${WVP_HOST:0.0.0.0}
     # 28181服务监听端口
-    port: ${WVP_PORT:8116}
-    domain: ${WVP_DOMAIN:3402000000}
-    id: ${WVP_ID:34020000002000000001}
+    port: ${WVP_PORT:8160}
+    # 前端展示用的IP（仅展示，不影响实际监听）
+    show-ip: ${WVP_SHOW_IP:192.168.1.100}
+    domain: ${WVP_DOMAIN:5101000000}
+    id: ${WVP_ID:51010000002000000001}
     # 设备公共认证密码
     password: ${WVP_PWD:admin123}
 
@@ -45,7 +47,7 @@ media:
     # 必须与 config.ini 的 http.port 一致
     http-port: ${ZLM_PORT:18978}
     # 必须与 config.ini 的 api.secret 一致
-    secret: ${MEDIA_SECRET:035c73f7-bb6b-4889-a715-d9eb2d1925cc}
+    secret: ${MEDIA_SECRET:6762c60607a6c1b75e7ac10ff68e98cfabceb9ea8363dc782905ad16ba4d1045}
     # ZLM 回调 WVP 使用的地址（跨容器部署时必须是 WVP 的服务名）
     hook-ip: ${MEDIA_HOOK_IP:127.0.0.1}
     rtp:

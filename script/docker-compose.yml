@@ -13,11 +13,11 @@ services:
       - "13306:3306"
     volumes:
       # 数据挂载
-      - /home/docker/wvp2/data/:/var/lib/mysql/
+      - ./mysql/data/:/var/lib/mysql/
       # 配置挂载
-      - /home/docker/wvp2/mysql/conf/:/etc/mysql/conf.d/
+      - ./mysql/conf/:/etc/mysql/conf.d/
       # 首次启动建表脚本（相对 compose 目录，随 script 目录一起上传）
-      - /home/docker/wvp2/sql/初始化-mysql-2.7.4.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./sql/初始化-mysql-2.7.4.sql:/docker-entrypoint-initdb.d/init.sql:ro
     command:
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_general_ci
@@ -44,9 +44,9 @@ services:
       TZ: Asia/Shanghai
     volumes:
       # 配置文件
-      - /home/docker/wvp2/redis/conf:/redis/config:rw
+      - ./redis/conf:/redis/config:rw
       # 数据文件
-      - /home/docker/wvp2/redis/data/:/redis/data/:rw
+      - ./redis/data/:/redis/data/:rw
     command: "redis-server /redis/config/redis.conf"
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -a 'cy*889900' ping | grep -q PONG"]
@@ -88,7 +88,7 @@ services:
       - wvp-network
   wvp:
     build:
-      context: /home/docker/wvp2/jar
+      context: ./jar
       dockerfile: Dockerfile
     container_name: wvp-main
     restart: unless-stopped
@@ -121,9 +121,11 @@ services:
 
       # SIP/GB28181
       WVP_HOST: "0.0.0.0"
-      WVP_PORT: "8116"
-      WVP_DOMAIN: "3402000000"
-      WVP_ID: "34020000002000000001"
+      # 前端接入信息展示的IP
+      WVP_SHOW_IP: "192.168.1.100"
+      WVP_PORT: "8160"
+      WVP_DOMAIN: "5132210000"
+      WVP_ID: "51322100002000000001"
       WVP_PWD: "cy*889900"
 
       # ZLMediaKit 容器内部地址
@@ -154,14 +156,18 @@ services:
 
       # GB28181 SIP
       # SIP服务器端口
-      - "8160:8116/tcp"
-      - "8160:8116/udp"
+      - "8160:8160/tcp"
+      - "8160:8160/udp"
 
     volumes:
+      # 业务文件挂载（覆盖镜像内COPY，改配置/换jar只需restart，无需重新build）
+      - ./jar/wvp.jar:/opt/wvp/wvp.jar
+      - ./jar/application.yml:/opt/wvp/application.yml
+      - ./jar/application-docker.yml:/opt/wvp/application-docker.yml
       # JWT 密钥持久化（jwkFile 见 application-docker.yml），避免重启后 token 失效
       - wvp-config:/opt/wvp/config
       # 运行日志
-      - /home/docker/wvp2/jar/logs:/opt/wvp/logs
+      - ./jar/logs:/opt/wvp/logs
 
     networks:
       - wvp-network
