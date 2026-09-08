@@ -9,7 +9,7 @@ COPY application.yml /opt/wvp/application.yml
 COPY application-docker.yml /opt/wvp/application-docker.yml
 
 EXPOSE 18080/tcp
-EXPOSE 8160/tcp
-EXPOSE 8160/udp
+EXPOSE 8116/tcp
+EXPOSE 8116/udp
 
 ENTRYPOINT ["java","-XX:MaxRAMPercentage=75.0","-jar","/opt/wvp/wvp.jar"]

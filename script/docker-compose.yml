@@ -69,10 +69,10 @@ services:
       # - "8443:8443/tcp"
       # - "554:554/tcp"                      # RTSP，可选
       # - "1935:1935/tcp"                    # RTMP，可选
-      - "10003:10003/udp"                  # RTP 单端口收流
-      - "10003:10003/tcp"                  # RTP TCP，可选
-      # - "30000-30500:30000-30500/udp"      # RTP 多端口收流
-      # - "30000-30500:30000-30500/tcp"      # RTP 多端口收流
+      - "10000:10000/udp"                  # RTP 单端口收流
+      - "10000:10000/tcp"                  # RTP TCP，可选
+      # - "30000-30100:30000-30100/udp"      # RTP 多端口收流
+      # - "30000-30100:30000-30100/tcp"      # RTP 多端口收流
       # - "18000:8000/udp"                    # WebRTC，可选
       # - "18000:8000/tcp"                    # WebRTC TCP，可选
       # - "19000:9000/udp"
@@ -121,10 +121,10 @@ services:
 
       # SIP/GB28181
       WVP_HOST: "0.0.0.0"
-      WVP_PORT: "5060"
+      WVP_PORT: "8116"
       WVP_DOMAIN: "3402000000"
       WVP_ID: "34020000002000000001"
-      WVP_PWD: "sua07f18"
+      WVP_PWD: "cy*889900"
 
       # ZLMediaKit 容器内部地址
       ZLM_HOST: "zlmediakit"
@@ -132,7 +132,7 @@ services:
 
       # 必须与 config.ini 完全一致
       MEDIA_ID: "zlm-01"
-      MEDIA_SECRET: "TfpuBvwlH2C7sVOnOdnpNLnZUxP6ZUNu"
+      MEDIA_SECRET: "3a9a5eb37502d57e8cf9f7031faca6b486caa21093a364b5b89fcc19ed2490d9"
 
       # ZLM 回调 WVP 时使用 Docker 服务名
       MEDIA_HOOK_IP: "wvp"
@@ -144,8 +144,8 @@ services:
       MEDIA_STREAM_IP: "192.168.1.100"
 
       MEDIA_RTP_ENABLE: "false"
-      MEDIA_RTP_PORT_RANGE: "30000,30500"
-      MEDIA_RTP_SEND_PORT_RANGE: "30000,30500"
+      MEDIA_RTP_PORT_RANGE: "30000,30100"
+      MEDIA_RTP_SEND_PORT_RANGE: "30000,30100"
 
     ports:
       # 调试阶段允许外部访问。
@@ -154,8 +154,8 @@ services:
 
       # GB28181 SIP
       # SIP服务器端口
-      - "8160:5060/tcp"
-      - "8160:5060/udp"
+      - "8160:8116/tcp"
+      - "8160:8116/udp"
 
     volumes:
       # JWT 密钥持久化（jwkFile 见 application-docker.yml），避免重启后 token 失效

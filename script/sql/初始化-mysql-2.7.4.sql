@@ -190,7 +190,7 @@ create table IF NOT EXISTS wvp_media_server
     ws_flv_ssl_port     integer COMMENT 'WS-FLV HTTPS端口',
     jtt_proxy_port      integer COMMENT 'JT/T代理端口',
     auto_config         bool                  default false COMMENT '是否自动配置',
-    secret              character varying(50) COMMENT 'ZLM校验密钥',
+    secret              character varying(255) COMMENT 'ZLM校验密钥',
     type                character varying(50) default 'zlm' COMMENT '节点类型',
     rtp_enable          bool                  default false COMMENT '是否开启RTP',
     rtp_port_range      character varying(50) COMMENT 'RTP端口范围',
