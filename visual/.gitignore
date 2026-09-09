@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.local
+.env.local
+.env.*.local
+# .env 含真实 VITE_API_KEY，不入库，模板见 .env.example
+.env

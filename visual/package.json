@@ -1,0 +1,21 @@
+{
+  "name": "wvp-visual-bigscreen",
+  "private": true,
+  "version": "1.0.0",
+  "description": "智慧安防监控平台大屏（Vue3 + TS）",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.5.23"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.4",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.14",
+    "vue-tsc": "^3.1.1"
+  }
+}
