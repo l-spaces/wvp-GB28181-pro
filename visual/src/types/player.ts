@@ -32,6 +32,8 @@ export interface JessibucaPlayer {
   on(event: string, listener: (payload?: unknown) => void): void
   play(url: string): void
   destroy(): void
+  /** 截取当前帧：type 为 download 时触发浏览器下载 */
+  screenshot(filename?: string, format?: string, quality?: number, type?: string): void
 }
 
 export interface JessibucaOptions {

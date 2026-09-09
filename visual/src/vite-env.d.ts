@@ -3,8 +3,8 @@
 interface ImportMetaEnv {
   /** 后端服务地址 */
   readonly VITE_API_BASE_URL: string
-  /** 后端 API 认证 key */
-  readonly VITE_API_KEY: string
+  /** WVP 源码前端（管理页）地址，可选，默认与后端同源 */
+  readonly VITE_WVP_WEB_URL?: string
 }
 
 interface ImportMeta {

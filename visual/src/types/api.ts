@@ -36,7 +36,8 @@ export interface PageInfo<T> {
 /** 告警（GET /api/alarm/list） */
 export interface WvpAlarm {
   id: number
-  alarmTime: string
+  /** 告警时间（毫秒时间戳） */
+  alarmTime: number
   alarmType: string
   channelDeviceId?: string
   deviceId?: string

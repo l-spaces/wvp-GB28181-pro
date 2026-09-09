@@ -1,9 +1,5 @@
-/** 后端服务地址与认证 key，来自 visual/.env */
+/** 后端服务地址，来自 visual/.env */
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-export const API_KEY = import.meta.env.VITE_API_KEY
 
-/** 拼接后端接口完整地址 */
-export function apiUrl(path: string): string {
-  if (path.startsWith('http://') || path.startsWith('https://')) return path
-  return `${API_BASE_URL}${path.startsWith('/') ? path : '/' + path}`
-}
+/** WVP 源码前端（管理页）地址，可选，默认与后端同源 */
+export const WVP_WEB_URL = import.meta.env.VITE_WVP_WEB_URL || API_BASE_URL

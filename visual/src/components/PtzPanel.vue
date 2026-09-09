@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
   cruiseStart,
   cruiseStop,
   presetCall,
+  queryPresets,
   sendDragZoom,
   sendFocus,
   sendIris,
@@ -12,17 +13,51 @@ import {
 import { selectedChannel } from '../stores/useDevices'
 import { useToast } from '../composables/useToast'
 import type { PtzCommand } from '../types/api'
+import type { PresetItem } from '../api/wvp'
 
 const { notify } = useToast()
 
 const speed = ref(5)
-const activePreset = ref(1)
+const activePreset = ref<string | null>(null)
 const cruiseId = ref(1)
 let currentCommand: string | null = null
 
 const channel = computed(() => selectedChannel.value)
 const channelLabel = computed(() => channel.value?.name ?? '未选择通道')
 const hasPtz = computed(() => (channel.value?.ptzType ?? 0) > 0)
+
+// ---------- 预置点（按接口查询结果渲染，无数据不显示） ----------
+
+/** 查询到的预置点列表；null=未查询/查询中 */
+const presets = ref<PresetItem[] | null>(null)
+const presetLoading = ref(false)
+const presetError = ref<string | null>(null)
+const presetEnabled = computed(() => (presets.value?.length ?? 0) > 0)
+
+async function loadPresets(ch: { gbId: number; name: string } | null) {
+  if (!ch) {
+    presets.value = null
+    presetError.value = null
+    return
+  }
+  presetLoading.value = true
+  presetError.value = null
+  try {
+    const list = await queryPresets(ch.gbId)
+    presets.value = list
+    activePreset.value = null
+  } catch (e) {
+    // 设备端不响应查询属常态（源码同款行为），不弹 toast 打扰
+    presets.value = []
+    presetError.value = e instanceof Error ? e.message : String(e)
+  } finally {
+    presetLoading.value = false
+  }
+}
+
+watch(channel, (ch) => {
+  void loadPresets(ch)
+})
 
 const directions = [
   { key: 'up', label: '▲', cls: 'card card-up' },
@@ -132,13 +167,13 @@ async function dragZoom(direction: 'in' | 'out') {
   }
 }
 
-async function preset(n: number) {
-  activePreset.value = n
+async function preset(item: PresetItem) {
+  activePreset.value = item.presetId
   const ch = requireChannel()
   if (!ch) return
   try {
-    await presetCall(ch.deviceDeviceId ?? '', ch.deviceId, n)
-    notify('已调用预置位 ' + n)
+    await presetCall(ch.deviceDeviceId ?? '', ch.deviceId, Number(item.presetId))
+    notify('已调用预置位 ' + (item.presetName || item.presetId))
   } catch (e) {
     notify('预置位调用失败：' + (e instanceof Error ? e.message : String(e)))
   }
@@ -211,15 +246,17 @@ onBeforeUnmount(() => {
       <span class="slider-value">{{ speed }}</span>
     </div>
 
-    <div class="preset">
-      <div class="section-label">预置位</div>
+    <!-- 预置位：仅接口查询到预置点时显示 -->
+    <div v-if="presetEnabled" class="preset">
+      <div class="section-label">预置位<span class="preset-count">{{ presets!.length }}</span></div>
       <div class="preset-row">
         <button
-          v-for="n in 5"
-          :key="n"
-          :class="{ active: activePreset === n }"
-          @click="preset(n)"
-        >{{ n }}</button>
+          v-for="p in presets"
+          :key="p.presetId"
+          :title="p.presetName || undefined"
+          :class="{ active: activePreset === p.presetId }"
+          @click="preset(p)"
+        >{{ p.presetId }}</button>
       </div>
     </div>
 
@@ -445,6 +482,13 @@ onBeforeUnmount(() => {
 .preset {
   border-top: 1px solid rgba(20, 120, 205, 0.38);
   padding-top: 7px;
+}
+
+.preset-count {
+  float: right;
+  color: #6599bf;
+  font-size: 11px;
+  font-weight: 400;
 }
 
 .preset-row {

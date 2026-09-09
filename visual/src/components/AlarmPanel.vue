@@ -1,19 +1,36 @@
 <script setup lang="ts">
 import { useAlarms } from '../stores/useDevices'
+import { WVP_WEB_URL } from '../config/env'
+import { alarmTypeLabel } from '../constants/alarm'
 
 const { alarms, error } = useAlarms()
+
+/** WVP 源码前端为 hash 路由，告警管理页 */
+const alarmPageUrl = `${WVP_WEB_URL}/#/alarm`
+
+/** alarmTime 为毫秒时间戳，格式化为 yyyy-MM-dd HH:mm:ss */
+function formatTime(value: number | string): string {
+  const ts = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(ts) || ts <= 0) return String(value)
+  const p = (n: number) => String(n).padStart(2, '0')
+  const d = new Date(ts)
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
+}
 </script>
 
 <template>
   <div class="panel alarm-panel">
-    <div class="bottom-title">告警信息 <span class="more">更多 ›</span></div>
+    <div class="bottom-title">
+      告警信息
+      <a class="more" :href="alarmPageUrl" target="_blank" rel="noopener">更多 ›</a>
+    </div>
     <div v-if="error" class="panel-error">{{ error }}</div>
     <div v-else-if="alarms.length === 0" class="empty">暂无告警</div>
     <table v-else class="alarm-table">
-      <thead><tr><th>时间</th><th>类型</th><th>设备</th><th>状态</th></tr></thead>
+      <thead><tr><th>通道</th><th>类型</th><th>时间</th><th>状态</th></tr></thead>
       <tbody>
         <tr v-for="a in alarms" :key="a.id">
-          <td>{{ a.alarmTime }}</td><td>{{ a.alarmType }}</td><td>{{ a.channelName || a.channelDeviceId || a.deviceId }}</td>
+          <td>{{ a.channelName || a.channelDeviceId || a.deviceId }}</td><td>{{ alarmTypeLabel(a.alarmType) }}</td><td>{{ formatTime(a.alarmTime) }}</td>
           <td class="done">○ 已处理</td>
         </tr>
       </tbody>
@@ -32,6 +49,12 @@ const { alarms, error } = useAlarms()
   float: right;
   color: #6fa9da;
   font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.more:hover {
+  color: #16c9ff;
 }
 
 .empty {

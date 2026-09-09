@@ -7,6 +7,8 @@
 - Vue 3.5（`<script setup lang="ts">` 组合式 API）
 - TypeScript 5.9（strict 模式，`vue-tsc` 类型检查）
 - Vite 7
+- Naive UI（暗色主题，主色对齐大屏青蓝配色；交互组件按需使用）
+- ECharts（按需注册 Pie/Bar/Line + Canvas 渲染，`src/components/BaseChart.vue` 封装）
 - pnpm
 
 ## 运行

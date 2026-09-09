@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
+import { NConfigProvider, NMessageProvider, NDialogProvider, darkTheme, type GlobalThemeOverrides } from 'naive-ui'
 import AppHeader from './components/AppHeader.vue'
 import DeviceTree from './components/DeviceTree.vue'
 import VideoWall from './components/VideoWall.vue'
@@ -10,42 +11,73 @@ import VideoInfoPanel from './components/VideoInfoPanel.vue'
 import AlarmPanel from './components/AlarmPanel.vue'
 import QuickPanel from './components/QuickPanel.vue'
 import AppToast from './components/AppToast.vue'
+import LoginPage from './components/LoginPage.vue'
 import { startAlarmPolling, startDevicePolling, startResourcePolling, stopAlarmPolling, stopDevicePolling, stopResourcePolling } from './stores/useDevices'
+import { loggedIn } from './stores/useAuth'
 import type { StreamContent } from './types/api'
+
+/** Naive UI 暗色主题，主色对齐大屏青蓝配色 */
+const themeOverrides: GlobalThemeOverrides = {
+  common: {
+    primaryColor: '#08aaff',
+    primaryColorHover: '#28b8ff',
+    primaryColorPressed: '#0088dd',
+    primaryColorSuppl: '#08aaff',
+  },
+}
 
 const layoutCount = ref(9)
 const activeStream = ref<StreamContent | null>(null)
 
-onMounted(() => {
+function startPolling() {
   startDevicePolling()
   startResourcePolling()
   startAlarmPolling()
-})
+}
 
-onBeforeUnmount(() => {
+function stopPolling() {
   stopDevicePolling()
   stopResourcePolling()
   stopAlarmPolling()
-})
+}
+
+onBeforeUnmount(stopPolling)
+
+/** 登录态变化：false→true（登录成功）启动轮询；true→false（401 过期）停止轮询；immediate 覆盖刷新恢复登录态的场景 */
+watch(
+  loggedIn,
+  (now, before) => {
+    if (now && !before) startPolling()
+    else if (!now && before) stopPolling()
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
-  <div class="dashboard">
-    <AppHeader />
-    <main class="main">
-      <DeviceTree />
-      <VideoWall v-model:stream="activeStream" :count="layoutCount" />
-      <PtzPanel />
-    </main>
-    <section class="bottom">
-      <LayoutPanel v-model:count="layoutCount" />
-      <DeviceStatusPanel />
-      <VideoInfoPanel :stream="activeStream" />
-      <AlarmPanel />
-      <QuickPanel />
-    </section>
-    <AppToast />
-  </div>
+  <NConfigProvider :theme="darkTheme" :theme-overrides="themeOverrides">
+    <NMessageProvider>
+      <NDialogProvider>
+        <LoginPage v-if="!loggedIn" />
+        <div v-else class="dashboard">
+          <AppHeader />
+          <main class="main">
+            <DeviceTree />
+            <VideoWall v-model:stream="activeStream" :count="layoutCount" />
+            <PtzPanel />
+          </main>
+          <section class="bottom">
+            <LayoutPanel v-model:count="layoutCount" />
+            <DeviceStatusPanel />
+            <VideoInfoPanel :stream="activeStream" />
+            <AlarmPanel />
+            <QuickPanel />
+          </section>
+          <AppToast />
+        </div>
+      </NDialogProvider>
+    </NMessageProvider>
+  </NConfigProvider>
 </template>
 
 <style scoped>

@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { playStart, playStop } from '../api/wvp'
 import { playRequestCount, selectedChannel } from '../stores/useDevices'
+import { activeChannelName, activeJessibuca, screenshotHandler } from '../stores/usePlayerBridge'
 import { useToast } from '../composables/useToast'
 import type { StreamContent, WvpChannel } from '../types/api'
 import type { JessibucaPlayer, ZlmRtcEndpoint, ZlmRtcClient } from '../types/player'
@@ -101,6 +102,19 @@ async function stopChannelEverywhere(channel: WvpChannel) {
 function syncActiveStream() {
   const slot = slots.value[activeSlotIndex.value]
   activeStream.value = slot?.stream ?? null
+  // 同步播放器桥：选中格的 jessibuca 实例与截图能力
+  const p = players.get(activeSlotIndex.value)
+  activeJessibuca.value = p?.jessibuca ?? null
+  activeChannelName.value = slot?.channel?.name ?? ''
+  screenshotHandler.value = (): boolean => {
+    const player = players.get(activeSlotIndex.value)?.jessibuca
+    if (!player) return false
+    // 文件名：通道名_时间戳，jessibuca 默认触发浏览器下载
+    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    const name = activeChannelName.value ? `${activeChannelName.value}_${ts}` : ts
+    player.screenshot(name, 'png', 1)
+    return true
+  }
 }
 
 // ---------- 地址选择 ----------
@@ -226,11 +240,11 @@ async function playChannelTo(channel: WvpChannel, index: number) {
   }
 }
 
-/** 点击卡片：选中格子；已在播的通道不重复拉流 */
+/** 点击卡片：选中格子；有流则选中该通道，空格清空选中通道 */
 function clickCard(index: number) {
   activeSlotIndex.value = index
   const slot = slots.value[index]
-  if (slot?.channel) selectedChannel.value = slot.channel
+  selectedChannel.value = slot?.channel ?? null
   syncActiveStream()
 }
 
