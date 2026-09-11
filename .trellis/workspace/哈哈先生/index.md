@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 1
+- **Total Sessions**: 2
 - **Last Active**: 2026-09-11
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~31 | Active |
+| `journal-1.md` | ~54 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 2 | 2026-09-11 | 菜单显示权限控制（非管理员白名单）：实现·验证·提交 | `e613879c3` | `feature/menu-visibility` |
 | 1 | 2026-09-11 | 用户-通道分配与查询过滤：实现·检查·部署·归档 | `3cb3110e0`, `cf0c83740` | `feature/user-channel-assign` |
 <!-- @@@/auto:session-history -->
 
