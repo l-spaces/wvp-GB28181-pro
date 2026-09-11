@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.vmanager.alarm;
 
 import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.service.IAlarmService;
+import com.genersoft.iot.vmp.service.IUserChannelService;
 import com.genersoft.iot.vmp.service.bean.AlarmType;
 import com.genersoft.iot.vmp.service.bean.Alarm;
 import com.github.pagehelper.PageInfo;
@@ -31,6 +32,8 @@ public class AlarmController {
 
     private final IAlarmService alarmService;
 
+    private final IUserChannelService userChannelService;
+
     @ResponseBody
     @GetMapping("/list")
     @Operation(summary = "分页查询报警列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -44,7 +47,16 @@ public class AlarmController {
                                 @RequestParam(required = false) List<AlarmType> alarmType,
                                 @RequestParam(required = false) String beginTime,
                                 @RequestParam(required = false) String endTime) {
-        return alarmService.getAlarms(page, count, alarmType, beginTime, endTime);
+        // 显示级过滤：非管理员用户只能看到其关联通道产生的报警
+        List<Integer> channelIds = null;
+        if (userChannelService.isFilterNeeded()) {
+            channelIds = userChannelService.getUserChannelIds();
+            if (channelIds == null || channelIds.isEmpty()) {
+                // 未做任何关联的用户报警列表为空（list 为空集合而非 null，避免前端空指针）
+                return PageInfo.emptyPageInfo();
+            }
+        }
+        return alarmService.getAlarms(page, count, alarmType, beginTime, endTime, channelIds);
     }
 
     @ResponseBody

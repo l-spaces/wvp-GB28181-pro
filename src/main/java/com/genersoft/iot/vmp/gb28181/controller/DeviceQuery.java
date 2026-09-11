@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
+import com.genersoft.iot.vmp.service.IUserChannelService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -71,6 +72,9 @@ public class DeviceQuery {
 	@Autowired
 	private IRedisRpcService redisRpcService;
 
+	@Autowired
+	private IUserChannelService userChannelService;
+
 	@Operation(summary = "查询国标设备", security = @SecurityRequirement(name = JwtUtils.HEADER))
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}")
@@ -91,7 +95,16 @@ public class DeviceQuery {
 		if (ObjectUtils.isEmpty(query)){
 			query = null;
 		}
-		return deviceService.getAll(page, count, query, status);
+		// 显示级过滤：非管理员用户只能看到其关联通道所属的设备
+		List<Integer> deviceDbIds = null;
+		if (userChannelService.isFilterNeeded()) {
+			deviceDbIds = userChannelService.getUserChannelDeviceIds();
+			if (deviceDbIds == null || deviceDbIds.isEmpty()) {
+				// 未做任何关联的用户设备列表为空（list 为空集合而非 null，避免前端空指针）
+				return PageInfo.emptyPageInfo();
+			}
+		}
+		return deviceService.getAll(page, count, query, status, deviceDbIds);
 	}
 
 
@@ -111,8 +124,16 @@ public class DeviceQuery {
 		if (ObjectUtils.isEmpty(query)) {
 			query = null;
 		}
-
-		return deviceChannelService.queryChannelsByDeviceId(deviceId, query, channelType, online, page, count);
+		// 显示级过滤：非管理员用户只能看到其关联的通道
+		List<Integer> channelDbIds = null;
+		if (userChannelService.isFilterNeeded()) {
+			channelDbIds = userChannelService.getUserChannelIds();
+			if (channelDbIds == null || channelDbIds.isEmpty()) {
+				// 未做任何关联的用户通道列表为空（list 为空集合而非 null，避免前端空指针）
+				return PageInfo.emptyPageInfo();
+			}
+		}
+		return deviceChannelService.queryChannelsByDeviceId(deviceId, query, channelType, online, page, count, channelDbIds);
 	}
 
 	@GetMapping("/streams")

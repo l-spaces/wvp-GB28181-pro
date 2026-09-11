@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.controller.bean.*;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelPlayService;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.utils.VectorTileCatch;
+import com.genersoft.iot.vmp.service.IUserChannelService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -62,6 +63,9 @@ public class ChannelController {
 
     @Autowired
     private VectorTileCatch vectorTileCatch;
+
+    @Autowired
+    private IUserChannelService userChannelService;
 
 
     @Operation(summary = "查询通道信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -147,7 +151,16 @@ public class ChannelController {
         if (ObjectUtils.isEmpty(parentDeviceId)){
             parentDeviceId = null;
         }
-        return channelService.queryList(page, count, query, online, hasRecordPlan, channelType, civilCode, parentDeviceId);
+        // 显示级过滤：非管理员用户只能看到其关联的通道
+        List<Integer> channelDbIds = null;
+        if (userChannelService.isFilterNeeded()) {
+            channelDbIds = userChannelService.getUserChannelIds();
+            if (channelDbIds == null || channelDbIds.isEmpty()) {
+                // 未做任何关联的用户通道列表为空（list 为空集合而非 null，避免前端空指针）
+                return PageInfo.emptyPageInfo();
+            }
+        }
+        return channelService.queryList(page, count, query, online, hasRecordPlan, channelType, civilCode, parentDeviceId, channelDbIds);
     }
 
     @Operation(summary = "获取关联行政区划通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -166,7 +179,16 @@ public class ChannelController {
         if (ObjectUtils.isEmpty(query)){
             query = null;
         }
-        return channelService.queryListByCivilCode(page, count, query, online, channelType, civilCode);
+        // 显示级过滤：非管理员用户只能看到其关联的通道
+        List<Integer> channelDbIds = null;
+        if (userChannelService.isFilterNeeded()) {
+            channelDbIds = userChannelService.getUserChannelIds();
+            if (channelDbIds == null || channelDbIds.isEmpty()) {
+                // 未做任何关联的用户通道列表为空（list 为空集合而非 null，避免前端空指针）
+                return PageInfo.emptyPageInfo();
+            }
+        }
+        return channelService.queryListByCivilCode(page, count, query, online, channelType, civilCode, channelDbIds);
     }
 
 
@@ -184,7 +206,16 @@ public class ChannelController {
         if (ObjectUtils.isEmpty(query)){
             query = null;
         }
-        return channelService.queryListByCivilCodeForUnusual(page, count, query, online, channelType);
+        // 显示级过滤：非管理员用户只能看到其关联的通道
+        List<Integer> channelDbIds = null;
+        if (userChannelService.isFilterNeeded()) {
+            channelDbIds = userChannelService.getUserChannelIds();
+            if (channelDbIds == null || channelDbIds.isEmpty()) {
+                // 未做任何关联的用户通道列表为空（list 为空集合而非 null，避免前端空指针）
+                return PageInfo.emptyPageInfo();
+            }
+        }
+        return channelService.queryListByCivilCodeForUnusual(page, count, query, online, channelType, channelDbIds);
     }
 
 
@@ -202,7 +233,16 @@ public class ChannelController {
         if (ObjectUtils.isEmpty(query)){
             query = null;
         }
-        return channelService.queryListByParentForUnusual(page, count, query, online, channelType);
+        // 显示级过滤：非管理员用户只能看到其关联的通道
+        List<Integer> channelDbIds = null;
+        if (userChannelService.isFilterNeeded()) {
+            channelDbIds = userChannelService.getUserChannelIds();
+            if (channelDbIds == null || channelDbIds.isEmpty()) {
+                // 未做任何关联的用户通道列表为空（list 为空集合而非 null，避免前端空指针）
+                return PageInfo.emptyPageInfo();
+            }
+        }
+        return channelService.queryListByParentForUnusual(page, count, query, online, channelType, channelDbIds);
     }
 
     @Operation(summary = "清除存在行政区划但无法挂载的通道列表", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -235,7 +275,16 @@ public class ChannelController {
         if (ObjectUtils.isEmpty(query)){
             query = null;
         }
-        return channelService.queryListByParentId(page, count, query, online, channelType, groupDeviceId);
+        // 显示级过滤：非管理员用户只能看到其关联的通道
+        List<Integer> channelDbIds = null;
+        if (userChannelService.isFilterNeeded()) {
+            channelDbIds = userChannelService.getUserChannelIds();
+            if (channelDbIds == null || channelDbIds.isEmpty()) {
+                // 未做任何关联的用户通道列表为空（list 为空集合而非 null，避免前端空指针）
+                return PageInfo.emptyPageInfo();
+            }
+        }
+        return channelService.queryListByParentId(page, count, query, online, channelType, groupDeviceId, channelDbIds);
     }
 
     @Operation(summary = "通道设置行政区划", security = @SecurityRequirement(name = JwtUtils.HEADER))

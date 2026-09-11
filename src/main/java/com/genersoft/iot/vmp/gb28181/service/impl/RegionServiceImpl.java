@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.dao.RegionMapper;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IRegionService;
+import com.genersoft.iot.vmp.service.IUserChannelService;
 import com.genersoft.iot.vmp.utils.CivilCodeUtil;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -45,6 +46,9 @@ public class RegionServiceImpl implements IRegionService {
 
     @Autowired
     private EventPublisher eventPublisher;
+
+    @Autowired
+    private IUserChannelService userChannelService;
 
     @Override
     public void add(Region region) {
@@ -144,6 +148,28 @@ public class RegionServiceImpl implements IRegionService {
 
     @Override
     public List<RegionTree> queryForTree(Integer parent, Boolean hasChannel) {
+        // 显示级过滤：非管理员用户只显示包含其关联通道的行政区划分支（含祖先节点）
+        if (userChannelService.isFilterNeeded()) {
+            List<CommonGBChannel> userChannels = userChannelService.getUserChannels();
+            Set<Integer> visibleRegionDbIds = getVisibleRegionDbIds(userChannels);
+            if (visibleRegionDbIds.isEmpty()) {
+                return new ArrayList<>();
+            }
+            List<RegionTree> regionList = regionMapper.queryForTree(parent);
+            // 节点列表只保留可见分支内的节点（根节点与子节点同理）
+            regionList.removeIf(regionTree -> !visibleRegionDbIds.contains(regionTree.getId()));
+            if (parent != null && hasChannel != null && hasChannel) {
+                Region parentRegion = regionMapper.queryOne(parent);
+                if (parentRegion != null) {
+                    List<RegionTree> channelList = commonGBChannelMapper.queryForRegionTreeByCivilCode(parentRegion.getDeviceId());
+                    // 只保留当前用户关联的通道
+                    Set<Integer> channelDbIdSet = userChannelDbIdSet(userChannels);
+                    channelList.removeIf(channel -> !channelDbIdSet.contains(channel.getId()));
+                    regionList.addAll(channelList);
+                }
+            }
+            return regionList;
+        }
         List<RegionTree> regionList = regionMapper.queryForTree(parent);
         if (parent != null && hasChannel != null && hasChannel) {
             Region parentRegion = regionMapper.queryOne(parent);
@@ -153,6 +179,46 @@ public class RegionServiceImpl implements IRegionService {
             }
         }
         return regionList;
+    }
+
+    /**
+     * 计算对当前用户可见的行政区划数据库主键集合（关联通道所在区划节点 + 沿 parent 链向上的全部祖先）
+     */
+    private Set<Integer> getVisibleRegionDbIds(List<CommonGBChannel> userChannels) {
+        Set<Integer> visibleRegionDbIds = new HashSet<>();
+        if (userChannels.isEmpty()) {
+            return visibleRegionDbIds;
+        }
+        for (CommonGBChannel channel : userChannels) {
+            String civilCode = channel.getGbCivilCode();
+            if (ObjectUtils.isEmpty(civilCode)) {
+                continue;
+            }
+            Region region = regionMapper.queryByDeviceId(civilCode);
+            while (region != null && visibleRegionDbIds.add(region.getId())) {
+                // 沿 parent 链向上补齐祖先节点
+                if (region.getParentId() == null) {
+                    break;
+                }
+                Region parentRegion = regionMapper.queryOne(region.getParentId());
+                if (parentRegion == null) {
+                    break;
+                }
+                region = parentRegion;
+            }
+        }
+        return visibleRegionDbIds;
+    }
+
+    /**
+     * 当前用户关联通道的库主键ID集合
+     */
+    private static Set<Integer> userChannelDbIdSet(List<CommonGBChannel> userChannels) {
+        Set<Integer> channelDbIdSet = new HashSet<>();
+        for (CommonGBChannel channel : userChannels) {
+            channelDbIdSet.add(channel.getGbId());
+        }
+        return channelDbIdSet;
     }
 
     @Override

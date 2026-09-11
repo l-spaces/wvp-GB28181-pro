@@ -14,6 +14,9 @@ public interface IAlarmService {
     // 分页获取报警信息
     PageInfo<Alarm> getAlarms(int page, int size, List<AlarmType> alarmType, String beginTime, String endTime);
 
+    // 分页获取报警信息，channelIds 为用户可见的通道库主键ID列表（wvp_device_channel.id），null 时不过滤
+    PageInfo<Alarm> getAlarms(int page, int size, List<AlarmType> alarmType, String beginTime, String endTime, List<Integer> channelIds);
+
     // 删除报警信息
     void deleteAlarmInfo(List<Long> ids);
 

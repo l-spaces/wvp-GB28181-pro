@@ -940,3 +940,19 @@ COMMENT ON COLUMN wvp_alarm.alarm_type IS '报警类别';
 COMMENT ON COLUMN wvp_alarm.alarm_time IS '报警时间';
 
 
+
+-- 用户通道关联表，存储用户与通道（wvp_device_channel.id 数据库主键）的关联关系
+drop table IF EXISTS wvp_user_channel;
+create table IF NOT EXISTS wvp_user_channel
+(
+    id          serial primary key,
+    user_id     integer NOT NULL,
+    channel_id  integer NOT NULL,
+    create_time character varying(50) NOT NULL
+);
+COMMENT ON TABLE wvp_user_channel IS '用户通道关联表';
+COMMENT ON COLUMN wvp_user_channel.id IS '主键ID';
+COMMENT ON COLUMN wvp_user_channel.user_id IS '用户ID（wvp_user.id）';
+COMMENT ON COLUMN wvp_user_channel.channel_id IS '通道数据库主键ID（wvp_device_channel.id）';
+COMMENT ON COLUMN wvp_user_channel.create_time IS '创建时间';
+create unique index IF NOT EXISTS uk_user_channel on wvp_user_channel (user_id, channel_id);

@@ -130,3 +130,21 @@ UPDATE wvp_user
    SET default_password = TRUE
  WHERE username = 'admin'
    AND password = '21232f297a57a5a743894a0e4a801fc3';
+
+
+/*
+* 20260909 添加用户通道关联表（显示级查询过滤）
+*/
+create table IF NOT EXISTS wvp_user_channel
+(
+    id          serial primary key,
+    user_id     integer NOT NULL,
+    channel_id  integer NOT NULL,
+    create_time character varying(50) NOT NULL
+);
+COMMENT ON TABLE wvp_user_channel IS '用户通道关联表';
+COMMENT ON COLUMN wvp_user_channel.id IS '主键ID';
+COMMENT ON COLUMN wvp_user_channel.user_id IS '用户ID（wvp_user.id）';
+COMMENT ON COLUMN wvp_user_channel.channel_id IS '通道数据库主键ID（wvp_device_channel.id）';
+COMMENT ON COLUMN wvp_user_channel.create_time IS '创建时间';
+create unique index IF NOT EXISTS uk_user_channel on wvp_user_channel (user_id, channel_id);

@@ -46,7 +46,17 @@ public interface IGbChannelService {
 
     PageInfo<CommonGBChannel> queryListByCivilCode(int page, int count, String query, Boolean online, Integer channelType, String civilCode);
 
+    /**
+     * 按用户关联通道库主键ID列表过滤的查询，channelDbIds 为 null 时不过滤（管理员）
+     */
+    PageInfo<CommonGBChannel> queryListByCivilCode(int page, int count, String query, Boolean online, Integer channelType, String civilCode, List<Integer> channelDbIds);
+
     PageInfo<CommonGBChannel> queryListByParentId(int page, int count, String query, Boolean online, Integer channelType, String groupDeviceId);
+
+    /**
+     * 按用户关联通道库主键ID列表过滤的查询，channelDbIds 为 null 时不过滤（管理员）
+     */
+    PageInfo<CommonGBChannel> queryListByParentId(int page, int count, String query, Boolean online, Integer channelType, String groupDeviceId, List<Integer> channelDbIds);
 
     void removeCivilCode(List<Region> allChildren);
 
@@ -88,11 +98,26 @@ public interface IGbChannelService {
 
     PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, Boolean hasRecordPlan, Integer channelType, String civilCode, String parentDeviceId);
 
+    /**
+     * 按用户关联通道库主键ID列表过滤的查询，channelDbIds 为 null 时不过滤（管理员）
+     */
+    PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, Boolean hasRecordPlan, Integer channelType, String civilCode, String parentDeviceId, List<Integer> channelDbIds);
+
     PageInfo<CommonGBChannel> queryListByCivilCodeForUnusual(int page, int count, String query, Boolean online, Integer channelType);
+
+    /**
+     * 按用户关联通道库主键ID列表过滤的查询，channelDbIds 为 null 时不过滤（管理员）
+     */
+    PageInfo<CommonGBChannel> queryListByCivilCodeForUnusual(int page, int count, String query, Boolean online, Integer channelType, List<Integer> channelDbIds);
 
     void clearChannelCivilCode(Boolean all, List<Integer> channelIds);
 
     PageInfo<CommonGBChannel> queryListByParentForUnusual(int page, int count, String query, Boolean online, Integer channelType);
+
+    /**
+     * 按用户关联通道库主键ID列表过滤的查询，channelDbIds 为 null 时不过滤（管理员）
+     */
+    PageInfo<CommonGBChannel> queryListByParentForUnusual(int page, int count, String query, Boolean online, Integer channelType, List<Integer> channelDbIds);
 
     void clearChannelParent(Boolean all, List<Integer> channelIds);
 

@@ -66,6 +66,12 @@ public interface IDeviceChannelService {
 
     PageInfo<DeviceChannel> queryChannelsByDeviceId(String deviceId, String query, Boolean channelType, Boolean online, int page, int count);
 
+    /**
+     * 分页查询设备下的通道
+     * @param channelDbIds 通道数据库主键ID列表（wvp_device_channel.id），非空时结果仅限这些通道，null 时不过滤
+     */
+    PageInfo<DeviceChannel> queryChannelsByDeviceId(String deviceId, String query, Boolean channelType, Boolean online, int page, int count, List<Integer> channelDbIds);
+
     PageInfo<DeviceChannel> queryChannels(String query, Boolean queryParent, Boolean channelType, Boolean online, Boolean hasStream, int page, int count);
 
     List<Device> queryDeviceWithAsMessageChannel();

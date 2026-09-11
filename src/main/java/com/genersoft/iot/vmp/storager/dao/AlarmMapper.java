@@ -26,11 +26,18 @@ public interface AlarmMapper {
             "</if>" +
             "<if test='beginTimeLong != null'> AND wa.alarm_time &gt;= #{beginTimeLong}</if>" +
             "<if test='endTimeLong != null'> AND wa.alarm_time &lt;= #{endTimeLong}</if>" +
+            "<if test='channelIds != null and channelIds.size() > 0'>" +
+            " AND wa.channel_id IN " +
+            "<foreach collection='channelIds' item='item' open='(' separator=',' close=')'>" +
+            "#{item}" +
+            "</foreach>" +
+            "</if>" +
             " ORDER BY wa.alarm_time DESC" +
             "</script>")
     List<Alarm> getAlarms(@Param("alarmType") List<AlarmType> alarmType,
                           @Param("beginTimeLong") Long beginTimeLong,
-                          @Param("endTimeLong") Long endTimeLong);
+                          @Param("endTimeLong") Long endTimeLong,
+                          @Param("channelIds") List<Integer> channelIds);
 
     @Delete("<script>" +
             "DELETE FROM wvp_alarm WHERE id IN " +

@@ -19,6 +19,7 @@ import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.service.IUserChannelService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -64,6 +65,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Autowired
     private IInviteStreamService inviteStreamService;
+
+    @Autowired
+    private IUserChannelService userChannelService;
 
     @Autowired
     private DeviceChannelMapper channelMapper;
@@ -190,6 +194,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void deleteForNotify(DeviceChannel channel) {
+        // 通道删除通知，同步清理该通道的用户关联（子查询依赖通道行，须在通道删除前执行）
+        userChannelService.removeForNotify(channel.getDataType(), channel.getDataDeviceId(), channel.getDeviceId());
         channelMapper.deleteForNotify(channel);
     }
 
@@ -352,6 +358,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public void cleanChannelsForDevice(int deviceId) {
+        // 清理设备全部通道前同步清理用户关联（子查询依赖通道行，须在通道删除前执行）
+        userChannelService.removeByDeviceDbId(deviceId);
         channelMapper.cleanChannelsByDeviceId(deviceId);
     }
 
@@ -432,12 +440,14 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             }
         }
         if (!deleteChannels.isEmpty()) {
+            List<Integer> ids = new ArrayList<>();
+            deleteChannels.stream().forEach(deviceChannel -> {
+                ids.add(deviceChannel.getId());
+            });
+            // 目录同步移除的通道，同步清理用户关联
+            userChannelService.removeByChannelIds(ids);
             try {
                 // 这些通道可能关联了，上级平台需要删除同时发送消息
-                List<Integer> ids = new ArrayList<>();
-                deleteChannels.stream().forEach(deviceChannel -> {
-                    ids.add(deviceChannel.getId());
-                });
                 platformChannelService.removeChannels(ids);
             }catch (Exception e) {
                 log.error("[移除通道国标级联共享失败]", e);
@@ -479,7 +489,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, civilCode, businessGroupId, parentId, query, false, channelType, online, null, null);
+        List<DeviceChannel> all = channelMapper.queryChannels(deviceDbId, civilCode, businessGroupId, parentId, query, false, channelType, online, null, null, null);
         return new PageInfo<>(all);
     }
 
@@ -490,6 +500,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, int page, int count) {
+        return queryChannelsByDeviceId(deviceId, query, hasSubChannel, online, page, count, null);
+    }
+
+    @Override
+    public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, int page, int count, List<Integer> channelDbIds) {
         Device device = deviceMapper.getDeviceByDeviceId(deviceId);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到设备：" + deviceId);
@@ -500,7 +515,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     .replaceAll("_", "/_");
         }
         PageHelper.startPage(page, count);
-        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null, null, null, query, false, hasSubChannel, online, null, null);
+        List<DeviceChannel> all = channelMapper.queryChannels(device.getId(), null, null, null, query, false, hasSubChannel, online, null, null, channelDbIds);
         return new PageInfo<>(all);
     }
 
@@ -512,7 +527,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<DeviceChannel> all = channelMapper.queryChannels(null, null, null, null, query, queryParent, hasSubChannel, online, null, hasStream);
+        List<DeviceChannel> all = channelMapper.queryChannels(null, null, null, null, query, queryParent, hasSubChannel, online, null, hasStream, null);
         return new PageInfo<>(all);
     }
 

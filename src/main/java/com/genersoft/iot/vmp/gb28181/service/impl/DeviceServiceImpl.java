@@ -31,6 +31,7 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IReceiveRtpServerService;
 import com.genersoft.iot.vmp.service.ISendRtpServerService;
+import com.genersoft.iot.vmp.service.IUserChannelService;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.redisMsg.IRedisRpcService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -78,6 +79,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private IInviteStreamService inviteStreamService;
+
+    @Autowired
+    private IUserChannelService userChannelService;
 
     @Autowired
     private DeviceMapper deviceMapper;
@@ -932,6 +936,8 @@ public class DeviceServiceImpl implements IDeviceService {
         }
 
         platformChannelMapper.delChannelForDeviceId(deviceId);
+        // 删除设备时同步清理用户与该设备通道的关联（子查询依赖通道行，须在通道删除前执行）
+        userChannelService.removeByDeviceDbId(device.getId());
         deviceChannelMapper.cleanChannelsByDeviceId(device.getId());
         deviceMapper.del(deviceId);
         redisCatchStorage.removeDevice(deviceId);
@@ -953,13 +959,18 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public PageInfo<Device> getAll(int page, int count, String query, Boolean status) {
+        return getAll(page, count, query, status, null);
+    }
+
+    @Override
+    public PageInfo<Device> getAll(int page, int count, String query, Boolean status, List<Integer> deviceDbIds) {
         PageHelper.startPage(page, count);
         if (query != null) {
             query = query.replaceAll("/", "//")
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<Device> all = deviceMapper.getDeviceList(ChannelDataType.GB28181, query, status);
+        List<Device> all = deviceMapper.getDeviceList(ChannelDataType.GB28181, query, status, deviceDbIds);
         return new PageInfo<>(all);
     }
 

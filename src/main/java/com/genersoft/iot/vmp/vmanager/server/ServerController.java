@@ -17,6 +17,7 @@ import com.genersoft.iot.vmp.media.bean.MediaServer;
 import com.genersoft.iot.vmp.media.event.mediaServer.MediaServerChangeEvent;
 import com.genersoft.iot.vmp.media.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMapService;
+import com.genersoft.iot.vmp.service.IUserChannelService;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.streamProxy.service.IStreamProxyService;
@@ -79,6 +80,9 @@ public class ServerController {
 
     @Autowired
     private IStreamProxyService proxyService;
+
+    @Autowired
+    private IUserChannelService userChannelService;
 
 
     @Autowired(required = false)
@@ -268,10 +272,16 @@ public class ServerController {
     @Operation(summary = "获取负载信息", security = @SecurityRequirement(name = JwtUtils.HEADER))
     public ResourceInfo getResourceInfo() {
         ResourceInfo result = new ResourceInfo();
-        ResourceBaseInfo deviceInfo = deviceService.getOverview();
-        result.setDevice(deviceInfo);
-        ResourceBaseInfo channelInfo = channelService.getOverview();
-        result.setChannel(channelInfo);
+        // 显示级过滤：非管理员用户按其关联通道范围统计设备/通道数
+        if (userChannelService.isFilterNeeded()) {
+            result.setDevice(userChannelService.getUserDeviceOverview());
+            result.setChannel(userChannelService.getUserChannelOverview());
+        }else {
+            ResourceBaseInfo deviceInfo = deviceService.getOverview();
+            result.setDevice(deviceInfo);
+            ResourceBaseInfo channelInfo = channelService.getOverview();
+            result.setChannel(channelInfo);
+        }
         ResourceBaseInfo pushInfo = pushService.getOverview();
         result.setPush(pushInfo);
         ResourceBaseInfo proxyInfo = proxyService.getOverview();
