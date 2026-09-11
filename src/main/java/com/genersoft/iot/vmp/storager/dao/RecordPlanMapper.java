@@ -44,8 +44,12 @@ public interface RecordPlanMapper {
             " SELECT wrp.*, (select count(1) from wvp_device_channel where record_plan_id = wrp.id) AS channelCount\n" +
             " FROM wvp_record_plan wrp where  1=1" +
             " <if test='query != null'> AND (name LIKE concat('%',#{query},'%') escape '/' )</if> " +
+            " <if test='channelDbIds != null and channelDbIds.size() > 0'> " +
+            " AND exists (select 1 from wvp_device_channel wdc where wdc.record_plan_id = wrp.id and wdc.id in " +
+            " <foreach collection='channelDbIds' item='item' open='(' separator=',' close=')'> #{item}</foreach> " +
+            " ) </if> " +
             " </script>")
-    List<RecordPlan> query(@Param("query") String query);
+    List<RecordPlan> query(@Param("query") String query, @Param("channelDbIds") List<Integer> channelDbIds);
 
     @Update("UPDATE wvp_record_plan SET update_time=#{updateTime}, name=#{name}, snap=#{snap} WHERE id=#{id}")
     void update(RecordPlan plan);

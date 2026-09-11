@@ -58,6 +58,15 @@
             <el-button size="medium" icon="el-icon-edit" type="text" @click="showUserApiKeyManager(scope.row)">管理ApiKey</el-button>
             <el-divider direction="vertical" />
             <el-button
+              v-if="scope.row.role && scope.row.role.id !== 1"
+              size="medium"
+              icon="el-icon-menu"
+              type="text"
+              @click="assignDevice(scope.row)"
+            >分配设备
+            </el-button>
+            <el-divider v-if="scope.row.role && scope.row.role.id !== 1" direction="vertical" />
+            <el-button
               size="medium"
               icon="el-icon-delete"
               type="text"
@@ -82,6 +91,7 @@
     <changePasswordForAdmin ref="changePasswordForAdmin" />
     <addUser ref="addUser" />
     <apiKeyManager ref="apiKeyManager" />
+    <assignDevice ref="assignDevice" />
   </div>
 </template>
 
@@ -89,13 +99,15 @@
 import changePasswordForAdmin from './dialog/changePasswordForAdmin.vue'
 import addUser from './dialog/addUser.vue'
 import apiKeyManager from './apiKeyManager.vue'
+import assignDevice from './dialog/assignDevice.vue'
 
 export default {
   name: 'User',
   components: {
     changePasswordForAdmin,
     addUser,
-    apiKeyManager
+    apiKeyManager,
+    assignDevice
   },
   data() {
     return {
@@ -195,6 +207,11 @@ export default {
     },
     showUserApiKeyManager: function(row) {
       this.$refs.apiKeyManager.openDialog(row.id)
+    },
+    assignDevice: function(row) {
+      this.$refs.assignDevice.openDialog(row, () => {
+        this.$refs.assignDevice.close()
+      })
     },
     startEdit: function(row) {
       if (!row.pushKey) {

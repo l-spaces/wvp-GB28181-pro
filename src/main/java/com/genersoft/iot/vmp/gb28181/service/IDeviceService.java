@@ -157,6 +157,12 @@ public interface IDeviceService {
 
     PageInfo<Device> getAll(int page, int count, String query, Boolean status);
 
+    /**
+     * 分页查询设备
+     * @param deviceDbIds 设备数据库主键ID列表（wvp_device.id），非空时结果仅限这些设备，null 时不过滤
+     */
+    PageInfo<Device> getAll(int page, int count, String query, Boolean status, List<Integer> deviceDbIds);
+
     Device getDevice(Integer gbDeviceDbId);
 
     Device getDeviceByChannelId(Integer channelId);

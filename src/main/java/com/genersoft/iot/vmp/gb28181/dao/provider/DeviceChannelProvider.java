@@ -112,6 +112,17 @@ public class DeviceChannelProvider {
             }
             sqlBuild.append(" )");
         }
+        List<Integer> channelDbIds = (List<Integer>)params.get("channelDbIds");
+        if (channelDbIds != null && !channelDbIds.isEmpty()) {
+            sqlBuild.append(" AND dc.id in (");
+            for (int i = 0; i < channelDbIds.size(); i++) {
+                if (i > 0) {
+                    sqlBuild.append(",");
+                }
+                sqlBuild.append("#{channelDbIds[").append(i).append("]}");
+            }
+            sqlBuild.append(" )");
+        }
         sqlBuild.append(" ORDER BY d.device_id, dc.device_id");
         return sqlBuild.toString();
     }

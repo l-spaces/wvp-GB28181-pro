@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.gb28181.event.channel.ChannelEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.gb28181.utils.VectorTileCatch;
+import com.genersoft.iot.vmp.service.IUserChannelService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.streamPush.bean.StreamPush;
 import com.genersoft.iot.vmp.utils.Coordtransform;
@@ -63,6 +64,9 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Autowired
     private IPlatformChannelService platformChannelService;
+
+    @Autowired
+    private IUserChannelService userChannelService;
 
     @Autowired
     private RegionMapper regionMapper;
@@ -145,6 +149,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     @Transactional
     public int delete(int gbId) {
+        // 删除通道，同步清理该通道的用户关联
+        userChannelService.removeByChannelIds(List.of(gbId));
         // 移除国标级联关联的信息
         try {
             platformChannelService.removeChannel(gbId);
@@ -168,6 +174,8 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     @Transactional
     public void delete(Collection<Integer> ids) {
+        // 删除通道，同步清理这些通道的用户关联
+        userChannelService.removeByChannelIds(new ArrayList<>(ids));
         // 移除国标级联关联的信息
         try {
             platformChannelService.removeChannels(new ArrayList<>(ids));
@@ -471,25 +479,35 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public PageInfo<CommonGBChannel> queryListByCivilCode(int page, int count, String query, Boolean online, Integer channelType, String civilCode) {
+        return queryListByCivilCode(page, count, query, online, channelType, civilCode, null);
+    }
+
+    @Override
+    public PageInfo<CommonGBChannel> queryListByCivilCode(int page, int count, String query, Boolean online, Integer channelType, String civilCode, List<Integer> channelDbIds) {
         PageHelper.startPage(page, count);
         if (query != null) {
             query = query.replaceAll("/", "//")
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<CommonGBChannel> all = commonGBChannelMapper.queryListByCivilCode(query, online, channelType, civilCode);
+        List<CommonGBChannel> all = commonGBChannelMapper.queryListByCivilCode(query, online, channelType, civilCode, channelDbIds);
         return new PageInfo<>(all);
     }
 
     @Override
     public PageInfo<CommonGBChannel> queryListByParentId(int page, int count, String query, Boolean online, Integer channelType, String groupDeviceId) {
+        return queryListByParentId(page, count, query, online, channelType, groupDeviceId, null);
+    }
+
+    @Override
+    public PageInfo<CommonGBChannel> queryListByParentId(int page, int count, String query, Boolean online, Integer channelType, String groupDeviceId, List<Integer> channelDbIds) {
         PageHelper.startPage(page, count);
         if (query != null) {
             query = query.replaceAll("/", "//")
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<CommonGBChannel> all = commonGBChannelMapper.queryListByParentId(query, online, channelType, groupDeviceId);
+        List<CommonGBChannel> all = commonGBChannelMapper.queryListByParentId(query, online, channelType, groupDeviceId, channelDbIds);
         return new PageInfo<>(all);
     }
 
@@ -803,25 +821,36 @@ public class GbChannelServiceImpl implements IGbChannelService {
     @Override
     public PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, Boolean hasRecordPlan,
                                                Integer channelType, String civilCode, String parentDeviceId) {
+        return queryList(page, count, query, online, hasRecordPlan, channelType, civilCode, parentDeviceId, null);
+    }
+
+    @Override
+    public PageInfo<CommonGBChannel> queryList(int page, int count, String query, Boolean online, Boolean hasRecordPlan,
+                                               Integer channelType, String civilCode, String parentDeviceId, List<Integer> channelDbIds) {
         PageHelper.startPage(page, count);
         if (query != null) {
             query = query.replaceAll("/", "//")
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<CommonGBChannel> all = commonGBChannelMapper.queryList(query, online,  hasRecordPlan, channelType, civilCode, parentDeviceId);
+        List<CommonGBChannel> all = commonGBChannelMapper.queryList(query, online,  hasRecordPlan, channelType, civilCode, parentDeviceId, channelDbIds);
         return new PageInfo<>(all);
     }
 
     @Override
     public PageInfo<CommonGBChannel> queryListByCivilCodeForUnusual(int page, int count, String query, Boolean online, Integer channelType) {
+        return queryListByCivilCodeForUnusual(page, count, query, online, channelType, null);
+    }
+
+    @Override
+    public PageInfo<CommonGBChannel> queryListByCivilCodeForUnusual(int page, int count, String query, Boolean online, Integer channelType, List<Integer> channelDbIds) {
         PageHelper.startPage(page, count);
         if (query != null) {
             query = query.replaceAll("/", "//")
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<CommonGBChannel> all = commonGBChannelMapper.queryListByCivilCodeForUnusual(query, online, channelType);
+        List<CommonGBChannel> all = commonGBChannelMapper.queryListByCivilCodeForUnusual(query, online, channelType, channelDbIds);
         return new PageInfo<>(all);
     }
 
@@ -839,13 +868,18 @@ public class GbChannelServiceImpl implements IGbChannelService {
 
     @Override
     public PageInfo<CommonGBChannel> queryListByParentForUnusual(int page, int count, String query, Boolean online, Integer channelType) {
+        return queryListByParentForUnusual(page, count, query, online, channelType, null);
+    }
+
+    @Override
+    public PageInfo<CommonGBChannel> queryListByParentForUnusual(int page, int count, String query, Boolean online, Integer channelType, List<Integer> channelDbIds) {
         PageHelper.startPage(page, count);
         if (query != null) {
             query = query.replaceAll("/", "//")
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<CommonGBChannel> all = commonGBChannelMapper.queryListByParentForUnusual(query, online, channelType);
+        List<CommonGBChannel> all = commonGBChannelMapper.queryListByParentForUnusual(query, online, channelType, channelDbIds);
         return new PageInfo<>(all);
     }
 
@@ -908,7 +942,7 @@ public class GbChannelServiceImpl implements IGbChannelService {
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        return commonGBChannelMapper.queryList(query, online,  hasRecordPlan, channelType, null, null);
+        return commonGBChannelMapper.queryList(query, online,  hasRecordPlan, channelType, null, null, null);
     }
 
     @Override

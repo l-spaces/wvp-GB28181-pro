@@ -240,6 +240,7 @@ public class ChannelProvider {
         if (params.get("dataType") != null) {
             sqlBuild.append(" AND data_type = #{dataType}");
         }
+        appendChannelDbIdsFilter(sqlBuild, params);
         return sqlBuild.toString();
     }
 
@@ -266,6 +267,7 @@ public class ChannelProvider {
         if (params.get("dataType") != null) {
             sqlBuild.append(" AND data_type = #{dataType}");
         }
+        appendChannelDbIdsFilter(sqlBuild, params);
         return sqlBuild.toString();
     }
 
@@ -296,6 +298,7 @@ public class ChannelProvider {
         if (params.get("parentDeviceId") != null) {
             sqlBuild.append(" AND coalesce(gb_parent_id, parent_id) =  #{parentDeviceId}");
         }
+        appendChannelDbIdsFilter(sqlBuild, params);
         sqlBuild.append(" order by create_time desc");
         return sqlBuild.toString();
     }
@@ -517,6 +520,7 @@ public class ChannelProvider {
         if (params.get("dataType") != null) {
             sqlBuild.append(" AND wdc.data_type = #{dataType}");
         }
+        appendChannelDbIdsFilterForWdc(sqlBuild, params);
         return sqlBuild.toString();
     }
 
@@ -540,6 +544,7 @@ public class ChannelProvider {
         if (params.get("dataType") != null) {
             sqlBuild.append(" AND wdc.data_type = #{dataType}");
         }
+        appendChannelDbIdsFilterForWdc(sqlBuild, params);
         return sqlBuild.toString();
     }
 
@@ -1034,4 +1039,39 @@ public class ChannelProvider {
         return sqlBuild.toString();
     }
 
+    /**
+     * 拼接用户关联通道库主键ID（wvp_device_channel.id）过滤条件，channelDbIds 为 null 时不拼接。
+     * 用于无表别名的 BASE_SQL
+     */
+    private static void appendChannelDbIdsFilter(StringBuilder sqlBuild, Map<String, Object> params) {
+        List<Integer> channelDbIds = (List<Integer>)params.get("channelDbIds");
+        if (channelDbIds != null && !channelDbIds.isEmpty()) {
+            sqlBuild.append(" AND id in ( ");
+            for (int i = 0; i < channelDbIds.size(); i++) {
+                if (i > 0) {
+                    sqlBuild.append(",");
+                }
+                sqlBuild.append("#{channelDbIds[").append(i).append("]}");
+            }
+            sqlBuild.append(" )");
+        }
+    }
+
+    /**
+     * 拼接用户关联通道库主键ID（wvp_device_channel.id）过滤条件，channelDbIds 为 null 时不拼接。
+     * 用于带 wdc 表别名的 BASE_SQL_TABLE_NAME
+     */
+    private static void appendChannelDbIdsFilterForWdc(StringBuilder sqlBuild, Map<String, Object> params) {
+        List<Integer> channelDbIds = (List<Integer>)params.get("channelDbIds");
+        if (channelDbIds != null && !channelDbIds.isEmpty()) {
+            sqlBuild.append(" AND wdc.id in ( ");
+            for (int i = 0; i < channelDbIds.size(); i++) {
+                if (i > 0) {
+                    sqlBuild.append(",");
+                }
+                sqlBuild.append("#{channelDbIds[").append(i).append("]}");
+            }
+            sqlBuild.append(" )");
+        }
+    }
 }

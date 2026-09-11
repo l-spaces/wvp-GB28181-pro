@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.gb28181.bean.CommonGBChannel;
 import com.genersoft.iot.vmp.gb28181.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IRecordPlanService;
+import com.genersoft.iot.vmp.service.IUserChannelService;
 import com.genersoft.iot.vmp.service.bean.RecordPlan;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.recordPlan.bean.RecordPlanParam;
@@ -33,6 +34,9 @@ public class RecordPlanController {
 
     @Autowired
     private IDeviceChannelService deviceChannelService;
+
+    @Autowired
+    private IUserChannelService userChannelService;
 
 
     @ResponseBody
@@ -97,7 +101,16 @@ public class RecordPlanController {
         if (query != null && ObjectUtils.isEmpty(query.trim())) {
             query = null;
         }
-        return recordPlanService.query(page, count, query);
+        // 显示级过滤：非管理员用户只能看到其可见通道关联的录制计划
+        List<Integer> channelDbIds = null;
+        if (userChannelService.isFilterNeeded()) {
+            channelDbIds = userChannelService.getUserChannelIds();
+            if (channelDbIds == null || channelDbIds.isEmpty()) {
+                // 未做任何关联的用户录制计划列表为空（list 为空集合而非 null，避免前端空指针）
+                return PageInfo.emptyPageInfo();
+            }
+        }
+        return recordPlanService.query(page, count, query, channelDbIds);
     }
 
     @Operation(summary = "分页查询录制计划关联的所有通道", security = @SecurityRequirement(name = JwtUtils.HEADER))
@@ -121,8 +134,17 @@ public class RecordPlanController {
         if (org.springframework.util.ObjectUtils.isEmpty(query)) {
             query = null;
         }
+        // 显示级过滤：非管理员用户只能看到其关联的通道
+        List<Integer> channelDbIds = null;
+        if (userChannelService.isFilterNeeded()) {
+            channelDbIds = userChannelService.getUserChannelIds();
+            if (channelDbIds == null || channelDbIds.isEmpty()) {
+                // 未做任何关联的用户通道列表为空（list 为空集合而非 null，避免前端空指针）
+                return PageInfo.emptyPageInfo();
+            }
+        }
 
-        return recordPlanService.queryChannelList(page, count, query, channelType,  online, planId, hasLink);
+        return recordPlanService.queryChannelList(page, count, query, channelType,  online, planId, hasLink, channelDbIds);
     }
 
     @ResponseBody

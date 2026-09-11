@@ -17,11 +17,15 @@ public interface IRecordPlanService {
 
     PageInfo<RecordPlan> query(Integer page, Integer count, String query);
 
+    PageInfo<RecordPlan> query(Integer page, Integer count, String query, List<Integer> channelDbIds);
+
     void add(RecordPlan plan);
 
     void link(List<Integer> channelIds, Integer planId);
 
     PageInfo<CommonGBChannel> queryChannelList(int page, int count, String query, Integer channelType, Boolean online, Integer planId, Boolean hasLink);
+
+    PageInfo<CommonGBChannel> queryChannelList(int page, int count, String query, Integer channelType, Boolean online, Integer planId, Boolean hasLink, List<Integer> channelDbIds);
 
     void linkAll(Integer planId);
 

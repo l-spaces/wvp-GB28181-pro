@@ -433,9 +433,12 @@ public interface DeviceMapper {
             " OR device_id LIKE concat('%',#{query},'%') escape '/' " +
             " OR ip LIKE concat('%',#{query},'%') escape '/')" +
             "</if> " +
+            "<if test='deviceDbIds != null and deviceDbIds.size() > 0'> AND de.id in " +
+            " <foreach item='item' index='index' collection='deviceDbIds' open='(' separator=',' close=')'> #{item} </foreach>" +
+            "</if> " +
             " order by create_time desc, device_id " +
             " </script>")
-    List<Device> getDeviceList(@Param("dataType") Integer dataType, @Param("query") String query, @Param("status") Boolean status);
+    List<Device> getDeviceList(@Param("dataType") Integer dataType, @Param("query") String query, @Param("status") Boolean status, @Param("deviceDbIds") List<Integer> deviceDbIds);
 
     @Select("select * from wvp_device_channel where id = #{id}")
     DeviceChannel getRawChannel(@Param("id") int id);

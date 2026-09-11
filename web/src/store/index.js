@@ -19,6 +19,7 @@ import cloudRecord from './modules/cloudRecord'
 import platform from './modules/platform'
 import role from './modules/role'
 import userApiKeys from './modules/userApiKeys'
+import userChannel from './modules/userChannel'
 import gbRecord from './modules/gbRecord'
 import log from './modules/log'
 import frontEnd from './modules/frontEnd'
@@ -47,6 +48,7 @@ const store = new Vuex.Store({
     platform,
     role,
     userApiKeys,
+    userChannel,
     gbRecord,
     log,
     frontEnd,

@@ -276,3 +276,15 @@ END; //
 DELIMITER ;
 call wvp_20260606();
 DROP PROCEDURE wvp_20260606;
+
+
+/*
+* 20260909 添加用户通道关联表（显示级查询过滤）
+*/
+create table IF NOT EXISTS wvp_user_channel (
+    id serial primary key COMMENT '主键ID',
+    user_id integer NOT NULL COMMENT '用户ID（wvp_user.id）',
+    channel_id integer NOT NULL COMMENT '通道数据库主键ID（wvp_device_channel.id）',
+    create_time character varying(50) NOT NULL COMMENT '创建时间',
+    constraint uk_user_channel unique (user_id, channel_id)
+);

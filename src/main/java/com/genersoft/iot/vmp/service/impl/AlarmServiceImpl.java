@@ -163,6 +163,11 @@ public class AlarmServiceImpl implements IAlarmService {
 
     @Override
     public PageInfo<Alarm> getAlarms(int page, int count, List<AlarmType> alarmType, String beginTime, String endTime) {
+        return getAlarms(page, count, alarmType, beginTime, endTime, null);
+    }
+
+    @Override
+    public PageInfo<Alarm> getAlarms(int page, int count, List<AlarmType> alarmType, String beginTime, String endTime, List<Integer> channelIds) {
         PageHelper.startPage(page, count);
         Long beginTimeLong = null;
         Long endTimeLong = null;
@@ -172,7 +177,7 @@ public class AlarmServiceImpl implements IAlarmService {
         if (endTime != null) {
             endTimeLong = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(endTime);
         }
-        List<Alarm> alarmList = alarmMapper.getAlarms(alarmType, beginTimeLong, endTimeLong);
+        List<Alarm> alarmList = alarmMapper.getAlarms(alarmType, beginTimeLong, endTimeLong, channelIds);
         return new PageInfo<>(alarmList);
     }
 
@@ -194,7 +199,7 @@ public class AlarmServiceImpl implements IAlarmService {
             endTimeLong = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestampMs(endTime);
         }
         // 清理前缓存数据，数据库删除后，相关的报警快照文件也需要清理掉
-        alarmMapper.getAlarms(alarmType, beginTimeLong, endTimeLong).forEach(alarm -> {
+        alarmMapper.getAlarms(alarmType, beginTimeLong, endTimeLong, null).forEach(alarm -> {
             String snapPath = alarm.getSnapPath();
             if (snapPath != null) {
                 File file = new File(snapPath);

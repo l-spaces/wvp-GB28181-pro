@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "检查重点：过滤参数是否进入 PageHelper 分页 SQL（禁止内存过滤）、channelDbIds 全部调用方传 null 兼容、两套 channelId 是否混用"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "检查新增代码是否复用现有鉴权模式（roleId==1 硬编码）、现有 element-ui 弹窗/树组件，无新依赖"}

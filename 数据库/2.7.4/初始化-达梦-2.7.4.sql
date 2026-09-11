@@ -1137,3 +1137,26 @@ COMMENT ON COLUMN wvp_alarm.longitude IS '报警附带的经度';
 COMMENT ON COLUMN wvp_alarm.latitude IS '报警附带的纬度';
 COMMENT ON COLUMN wvp_alarm.alarm_type IS '报警类别';
 COMMENT ON COLUMN wvp_alarm.alarm_time IS '报警时间';
+
+-- 用户通道关联表，存储用户与通道（wvp_device_channel.id 数据库主键）的关联关系
+DECLARE
+V_CNT INT;
+BEGIN
+SELECT COUNT(*) INTO V_CNT FROM SYSOBJECTS WHERE NAME = 'WVP_USER_CHANNEL' AND TYPE$ = 'SCHOBJ';
+IF V_CNT > 0 THEN
+        EXECUTE IMMEDIATE 'DROP TABLE WVP_USER_CHANNEL';
+END IF;
+END;
+/
+CREATE TABLE wvp_user_channel (
+                                  id          int identity(1,1) primary key,
+                                  user_id     int NOT NULL,
+                                  channel_id  int NOT NULL,
+                                  create_time varchar(50) NOT NULL
+);
+COMMENT ON TABLE wvp_user_channel IS '用户通道关联表';
+COMMENT ON COLUMN wvp_user_channel.id IS '主键ID';
+COMMENT ON COLUMN wvp_user_channel.user_id IS '用户ID（wvp_user.id）';
+COMMENT ON COLUMN wvp_user_channel.channel_id IS '通道数据库主键ID（wvp_device_channel.id）';
+COMMENT ON COLUMN wvp_user_channel.create_time IS '创建时间';
+CREATE UNIQUE INDEX uk_user_channel ON wvp_user_channel (user_id, channel_id);

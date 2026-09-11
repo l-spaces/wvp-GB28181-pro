@@ -239,13 +239,18 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
 
     @Override
     public PageInfo<RecordPlan> query(Integer page, Integer count, String query) {
+        return query(page, count, query, null);
+    }
+
+    @Override
+    public PageInfo<RecordPlan> query(Integer page, Integer count, String query, List<Integer> channelDbIds) {
         PageHelper.startPage(page, count);
         if (query != null) {
             query = query.replaceAll("/", "//")
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<RecordPlan> all = recordPlanMapper.query(query);
+        List<RecordPlan> all = recordPlanMapper.query(query, channelDbIds);
         return new PageInfo<>(all);
     }
 
@@ -266,13 +271,18 @@ public class RecordPlanServiceImpl implements IRecordPlanService {
 
     @Override
     public PageInfo<CommonGBChannel> queryChannelList(int page, int count, String query, Integer dataType, Boolean online, Integer planId, Boolean hasLink) {
+        return queryChannelList(page, count, query, dataType, online, planId, hasLink, null);
+    }
+
+    @Override
+    public PageInfo<CommonGBChannel> queryChannelList(int page, int count, String query, Integer dataType, Boolean online, Integer planId, Boolean hasLink, List<Integer> channelDbIds) {
         PageHelper.startPage(page, count);
         if (query != null) {
             query = query.replaceAll("/", "//")
                     .replaceAll("%", "/%")
                     .replaceAll("_", "/_");
         }
-        List<CommonGBChannel> all = channelMapper.queryForRecordPlanForWebList(planId, query, dataType, online, hasLink);
+        List<CommonGBChannel> all = channelMapper.queryForRecordPlanForWebList(planId, query, dataType, online, hasLink, channelDbIds);
         return new PageInfo<>(all);
     }
 

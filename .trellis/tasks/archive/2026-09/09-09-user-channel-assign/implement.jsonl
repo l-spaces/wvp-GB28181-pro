@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "实现前思考复用：新增 Mapper/Service/Controller 均要求照抄现有模式（RoleMapper/RoleController/addUser.vue 弹窗骨架）而非另起炉灶"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "本任务跨数据库/后端服务层/web 前端/部署四层，channelId 存在库主键与国标编号两套 ID，跨层数据流易错"}

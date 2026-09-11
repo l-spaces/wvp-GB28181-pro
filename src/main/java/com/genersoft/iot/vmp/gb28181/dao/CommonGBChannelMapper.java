@@ -268,13 +268,15 @@ public interface CommonGBChannelMapper {
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListByCivilCode")
     List<CommonGBChannel> queryListByCivilCode(@Param("query") String query, @Param("online") Boolean online,
-                                               @Param("dataType") Integer dataType, @Param("civilCode") String civilCode);
+                                               @Param("dataType") Integer dataType, @Param("civilCode") String civilCode,
+                                               @Param("channelDbIds") List<Integer> channelDbIds);
 
 
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListByParentId")
     List<CommonGBChannel> queryListByParentId(@Param("query") String query, @Param("online") Boolean online,
-                                              @Param("dataType") Integer dataType, @Param("groupDeviceId") String groupDeviceId);
+                                              @Param("dataType") Integer dataType, @Param("groupDeviceId") String groupDeviceId,
+                                              @Param("channelDbIds") List<Integer> channelDbIds);
 
 
 
@@ -485,7 +487,8 @@ public interface CommonGBChannelMapper {
     @SelectProvider(type = ChannelProvider.class, method = "queryList")
     List<CommonGBChannel> queryList(@Param("query") String query, @Param("online") Boolean online,
                                     @Param("hasRecordPlan") Boolean hasRecordPlan, @Param("dataType") Integer dataType,
-                                    @Param("civilCode") String civilCode, @Param("parentDeviceId") String parentDeviceId);
+                                    @Param("civilCode") String civilCode, @Param("parentDeviceId") String parentDeviceId,
+                                    @Param("channelDbIds") List<Integer> channelDbIds);
 
     @Update(value = {" <script>" +
             " UPDATE wvp_device_channel " +
@@ -570,22 +573,30 @@ public interface CommonGBChannelMapper {
             " <if test='hasLink == true'> AND wdc.record_plan_id = #{planId}</if> " +
             " <if test='hasLink == false'> AND wdc.record_plan_id is null</if> " +
             " <if test='dataType != null'> AND wdc.data_type = #{dataType}</if> " +
+            " <if test='channelDbIds != null and channelDbIds.size() > 0'>" +
+            " AND wdc.id IN " +
+            "<foreach collection='channelDbIds' item='item' open='(' separator=',' close=')'>" +
+            "#{item}" +
+            "</foreach>" +
+            "</if> " +
             "</script>")
     List<CommonGBChannel> queryForRecordPlanForWebList(@Param("planId") Integer planId, @Param("query") String query,
                                                        @Param("dataType") Integer dataType, @Param("online") Boolean online,
-                                                       @Param("hasLink") Boolean hasLink);
+                                                       @Param("hasLink") Boolean hasLink, @Param("channelDbIds") List<Integer> channelDbIds);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryByDataId")
     CommonGBChannel queryByDataId(@Param("dataType") Integer dataType, @Param("dataDeviceId") Integer dataDeviceId);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListByCivilCodeForUnusual")
-    List<CommonGBChannel> queryListByCivilCodeForUnusual(@Param("query") String query, @Param("online") Boolean online, @Param("dataType")Integer dataType);
+    List<CommonGBChannel> queryListByCivilCodeForUnusual(@Param("query") String query, @Param("online") Boolean online,
+                                                         @Param("dataType")Integer dataType, @Param("channelDbIds") List<Integer> channelDbIds);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryAllForUnusualCivilCode")
     List<Integer> queryAllForUnusualCivilCode();
 
     @SelectProvider(type = ChannelProvider.class, method = "queryListByParentForUnusual")
-    List<CommonGBChannel> queryListByParentForUnusual(@Param("query") String query, @Param("online") Boolean online, @Param("dataType")Integer dataType);
+    List<CommonGBChannel> queryListByParentForUnusual(@Param("query") String query, @Param("online") Boolean online,
+                                                      @Param("dataType")Integer dataType, @Param("channelDbIds") List<Integer> channelDbIds);
 
     @SelectProvider(type = ChannelProvider.class, method = "queryAllForUnusualParent")
     List<Integer> queryAllForUnusualParent();

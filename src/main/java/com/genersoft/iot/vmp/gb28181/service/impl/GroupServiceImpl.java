@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.service.IGbChannelService;
 import com.genersoft.iot.vmp.gb28181.service.IGroupService;
+import com.genersoft.iot.vmp.service.IUserChannelService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.github.pagehelper.PageHelper;
@@ -44,6 +45,9 @@ public class GroupServiceImpl implements IGroupService {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    private IUserChannelService userChannelService;
 
     @Override
     public void add(Group group) {
@@ -176,6 +180,35 @@ public class GroupServiceImpl implements IGroupService {
     @Override
     public List<GroupTree> queryForTree(String query, Integer parentId, Boolean hasChannel) {
 
+        // 显示级过滤：非管理员用户只显示包含其关联通道的分组分支（含祖先节点）
+        if (userChannelService.isFilterNeeded()) {
+            List<CommonGBChannel> userChannels = userChannelService.getUserChannels();
+            Set<Integer> visibleGroupDbIds = getVisibleGroupDbIds(userChannels);
+            if (visibleGroupDbIds.isEmpty()) {
+                return new ArrayList<>();
+            }
+            List<GroupTree> groupTrees = groupManager.queryForTree(query, parentId);
+            groupTrees.removeIf(groupTree -> !visibleGroupDbIds.contains(groupTree.getId()));
+            if (parentId == null) {
+                return groupTrees;
+            }
+            // 查询含有的通道
+            Group parentGroup = groupManager.queryOne(parentId);
+            if (parentGroup != null && hasChannel != null && hasChannel) {
+                List<GroupTree> groupTreesForChannel = commonGBChannelMapper.queryForGroupTreeByParentId(query, parentGroup.getDeviceId());
+                if (!ObjectUtils.isEmpty(groupTreesForChannel)) {
+                    // 只保留当前用户关联的通道
+                    Set<Integer> channelDbIdSet = new HashSet<>();
+                    for (CommonGBChannel channel : userChannels) {
+                        channelDbIdSet.add(channel.getGbId());
+                    }
+                    groupTreesForChannel.removeIf(channel -> !channelDbIdSet.contains(channel.getId()));
+                    groupTrees.addAll(groupTreesForChannel);
+                }
+            }
+            return groupTrees;
+        }
+
         List<GroupTree> groupTrees = groupManager.queryForTree(query, parentId);
         if (parentId == null) {
             return groupTrees;
@@ -189,6 +222,36 @@ public class GroupServiceImpl implements IGroupService {
             }
         }
         return groupTrees;
+    }
+
+    /**
+     * 计算对当前用户可见的分组数据库主键集合（关联通道的直接分组/业务分组 + 沿 parent 链向上的全部祖先）
+     */
+    private Set<Integer> getVisibleGroupDbIds(List<CommonGBChannel> userChannels) {
+        Set<Integer> visibleGroupDbIds = new HashSet<>();
+        if (userChannels.isEmpty()) {
+            return visibleGroupDbIds;
+        }
+        for (CommonGBChannel channel : userChannels) {
+            // gb_parent_id 为空时尝试业务分组根（215节点，通道直接挂业务分组下）
+            String groupDeviceId = ObjectUtils.isEmpty(channel.getGbParentId()) ? channel.getGbBusinessGroupId() : channel.getGbParentId();
+            if (ObjectUtils.isEmpty(groupDeviceId)) {
+                continue;
+            }
+            Group group = groupManager.queryOneByOnlyDeviceId(groupDeviceId);
+            while (group != null && visibleGroupDbIds.add(group.getId())) {
+                // 沿 parent 链向上补齐祖先节点
+                if (group.getParentId() == null || ObjectUtils.isEmpty(group.getParentDeviceId())) {
+                    break;
+                }
+                Group parentGroup = groupManager.queryOneByDeviceId(group.getParentDeviceId(), group.getBusinessGroup());
+                if (parentGroup == null) {
+                    break;
+                }
+                group = parentGroup;
+            }
+        }
+        return visibleGroupDbIds;
     }
 
     @Override

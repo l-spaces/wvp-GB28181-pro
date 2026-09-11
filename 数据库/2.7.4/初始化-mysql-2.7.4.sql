@@ -537,3 +537,14 @@ create table IF NOT EXISTS wvp_alarm (
                           alarm_type integer COMMENT '报警类别',
                           alarm_time bigint COMMENT '报警时间'
 );
+
+-- 用户通道关联表，存储用户与通道（wvp_device_channel.id 数据库主键）的关联关系
+drop table IF EXISTS wvp_user_channel;
+create table IF NOT EXISTS wvp_user_channel
+(
+    id          serial primary key COMMENT '主键ID',
+    user_id     integer NOT NULL COMMENT '用户ID（wvp_user.id）',
+    channel_id  integer NOT NULL COMMENT '通道数据库主键ID（wvp_device_channel.id）',
+    create_time character varying(50) NOT NULL COMMENT '创建时间',
+    constraint uk_user_channel unique (user_id, channel_id)
+);
