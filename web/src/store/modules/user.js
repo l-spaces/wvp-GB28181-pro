@@ -18,6 +18,9 @@ import {
   removeName,
   setServerId,
   removeServerId,
+  getRole,
+  setRole,
+  removeRole,
   getDefaultPassword,
   setDefaultPassword,
   removeDefaultPassword
@@ -29,6 +32,7 @@ const getDefaultState = () => {
     token: getToken(),
     name: '',
     serverId: '',
+    roleId: getRole(),
     defaultPassword: getDefaultPassword(),
     showConfirmBoxForLoginLose: true
   }
@@ -48,6 +52,9 @@ const mutations = {
   },
   SET_SERVER_ID: (state, serverId) => {
     state.serverId = serverId
+  },
+  SET_ROLE: (state, roleId) => {
+    state.roleId = roleId
   },
   SET_DEFAULT_PASSWORD: (state, defaultPassword) => {
     state.defaultPassword = defaultPassword
@@ -70,11 +77,13 @@ const actions = {
         commit('SET_TOKEN', data.accessToken)
         commit('SET_NAME', data.username)
         commit('SET_SERVER_ID', data.serverId)
+        commit('SET_ROLE', data.role ? data.role.id : null)
         commit('SET_DEFAULT_PASSWORD', !!data.defaultPassword)
         commit('SET_CONFIRM_BOX', true)
         setToken(data.accessToken)
         setName(data.username)
         setServerId(data.serverId)
+        setRole(data.role ? data.role.id : null)
         setDefaultPassword(data.defaultPassword)
         resolve()
       }).catch(error => {
@@ -89,6 +98,7 @@ const actions = {
         removeToken()
         removeServerId()
         removeName()
+        removeRole()
         removeDefaultPassword()
         resetRouter()
         commit('RESET_STATE')

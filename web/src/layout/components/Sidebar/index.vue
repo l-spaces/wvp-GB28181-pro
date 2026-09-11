@@ -24,14 +24,24 @@ import Logo from './Logo'
 import SidebarItem from './SidebarItem'
 import variables from '@/styles/variables.scss'
 
+// 非管理员可见的顶级菜单白名单（顶级 route path，控制台为 /）
+const nonAdminMenuPaths = ['/', '/live', '/channel', '/map', '/cloudRecord']
+
 export default {
   components: { SidebarItem, Logo },
   computed: {
     ...mapGetters([
-      'sidebar'
+      'sidebar',
+      'roleId'
     ]),
     routes() {
-      return this.$router.options.routes
+      const routes = this.$router.options.routes
+      if (this.roleId === 1) {
+        // 管理员显示全部菜单
+        return routes
+      }
+      // 非管理员（含 roleId 缺失的异常态）只显示白名单菜单
+      return routes.filter(route => nonAdminMenuPaths.includes(route.path))
     },
     activeMenu() {
       const route = this.$route

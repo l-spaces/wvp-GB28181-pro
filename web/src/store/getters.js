@@ -4,6 +4,7 @@ const getters = {
   token: state => state.user.token,
   showConfirmBoxForLoginLose: state => state.user.showConfirmBoxForLoginLose,
   serverId: state => state.user.serverId,
+  roleId: state => state.user.roleId,
   name: state => state.user.name,
   defaultPassword: state => state.user.defaultPassword,
   visitedViews: state => state.tagsView.visitedViews,
