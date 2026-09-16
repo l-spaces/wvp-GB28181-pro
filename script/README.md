@@ -130,3 +130,12 @@ docker compose restart zlmediakit  # 只改了 zlm/config.ini
    `[ZLM-心跳超时]`（主动探测兜底，不影响点播功能）。**规程：每次重启 wvp 后，必须再
    单独执行一次 `docker compose restart zlmediakit`**（ZLM 单独重启时读 config.ini 已
    写死的 hook，keepalive 恢复正常）。
+10. **内网播放失败（播放地址是公网 IP）**：`MEDIA_STREAM_IP` 填公网后，WVP 返回给所有
+   客户端的播放地址 host 都是公网 IP；防火墙/路由器无 NAT 回环时，内网浏览器经内网 IP
+   打开页面正常，点播却连不上流（注意：从服务器自测公网 IP 可达是 DNAT 目标机"自己连
+   自己"的特例，不代表其他内网主机可达）。解法：wvp 服务环境变量加
+   `SPRING_APPLICATION_JSON: '{"user-settings":{"use-source-ip-as-stream-ip":true}}'`
+   （改后 `up -d wvp` 重建，restart 不生效，并按第 9 条单独重启 zlmediakit）——WVP 按
+   "访问页面用的 host"生成播放地址，内网访问返回内网 IP、外网访问返回公网 IP。只替换
+   host 不替换端口，要求流端口内外一致（18978 满足）；不影响 `MEDIA_SDP_IP` 与摄像头
+   收流链路。
