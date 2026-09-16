@@ -52,3 +52,41 @@ web 菜单按角色过滤：登录落地 roleId 到 wvp_role cookie（auth.js �
 ### Status
 
 [OK] **Completed**
+
+
+## Session 3: 内网播放失败（播放地址为公网IP）：诊断·修复·沉淀
+<!-- trellis-session: v=2 fp=3f1724c85bf66867 -->
+
+**Date**: 2026-09-16
+**Task**: 内网播放失败（播放地址为公网IP）：诊断·修复·沉淀
+**Package**: be.teletask.onvif-java
+**Branch**: `main`
+
+### Summary
+
+内网经 192.168.3.210:18080 打开页面正常但点播失败。根因：WVP 播放地址 host 取 wvp_media_server.stream_ip（112.44.242.59），use-source-ip-as-stream-ip 默认 false，内网浏览器被迫连公网 IP，防火墙无 NAT 回环故连不上。修复：wvp 服务注入 SPRING_APPLICATION_JSON 开启该开关，up -d wvp 重建 + 单独 restart zlmediakit，内外网复验通过。
+
+### Main Changes
+
+- 服务器 /home/cy/wvp2 的 docker-compose.yml 注入 SPRING_APPLICATION_JSON 开启 use-source-ip-as-stream-ip（备份 bak.20260916034020）
+- script/README.md 新增踩坑第 10 条：根因、解法、以及“服务器自测公网 IP 可达不代表内网其他主机可达”的排查陷阱
+- 运维执行计划沉淀到任务 research/ops-plan.md（含验证与回滚步骤）
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b95bc148e` | docs(script): 沉淀内网播放地址为公网IP导致播放失败的排查与解法 |
+
+### Testing
+
+- [OK] 服务器端：SIP SERVER 启动成功 / Started VManageBootstrap / ZLM-连接成功，getServerConfig 确认 hook.on_publish 等 10 个 hook 完好
+- [OK] 用户复验：内网经 192.168.3.210:18080 播放正常（ws 指向内网 IP），外网经 112.44.242.59 播放不受影响
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- WebRTC 播放若内网使用，仍需处理 [rtc] externIP 回环问题（本次未涉及，播放器默认走 ws-flv）
