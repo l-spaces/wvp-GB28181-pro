@@ -158,8 +158,9 @@ channel:
 #   skip_keyword: "no-trellis"   # "" disables the escape hatch entirely
 
 # Auto-detected monorepo packages
+# 注：trellis init 曾把上游 .gitmodules 里遗留的孤儿声明（be.teletask.onvif-java，
+# 目录不存在、无 gitlink、代码零引用）识别成唯一子模块包，已更正为本项目实际名称。
 packages:
-  be.teletask.onvif-java:
-    path: be.teletask.onvif-java
-    type: submodule
-default_package: be.teletask.onvif-java
+  wvp-pro:
+    path: .
+default_package: wvp-pro
