@@ -36,3 +36,5 @@ certificates
 /config/
 /script/jar/wvp.jar
 /demo/public/config.json
+# 本地接口文档：含明文服务器地址与账号口令，仅保留在本地，禁止入库
+/文档/
