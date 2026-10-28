@@ -21,18 +21,26 @@ the rest conversationally.
 
 ## Status (update the checkboxes as you complete each item)
 
-- [ ] Fill guidelines for be.teletask.onvif-java
-- [ ] Add code examples
+- [x] Fill guidelines for wvp-pro
+- [x] Add code examples
+
+**完成记录（2026-10-28）**
+
+- 来源：以 `doc/编程规范.md`（170 行）与 `AGENTS.md` 为唯一事实来源，按主题拆解，未从零发明规范。
+- 后端 5 篇：`directory-structure.md`(214)、`database-guidelines.md`(191)、`error-handling.md`(165)、`quality-guidelines.md`(125)、`logging-guidelines.md`(75)。
+- 前端 6 篇：`component-guidelines.md`(184)、`type-safety.md`(168)、`directory-structure.md`(151)、`quality-guidelines.md`(136)、`state-management.md`(106)、`hook-guidelines.md`(101)。
+- 每篇均含：真实文件路径与行号、可执行的正/反例、以及"存量反例（不要模仿）"清单。`index.md` 两篇已改为全 Active 并把语言声明统一为中文。
+- 包名更正：`be.teletask.onvif-java` → `wvp-pro`（前者是上游 `.gitmodules` 遗留的孤儿声明，目录不存在、无 gitlink、代码零引用）。
 
 ---
 
 ## Spec files to populate
 
-### Package: be.teletask.onvif-java (`spec/be.teletask.onvif-java/`)
+### Package: wvp-pro (`spec/wvp-pro/`)
 
-- Backend guidelines: `.trellis/spec/be.teletask.onvif-java/backend/`
+- Backend guidelines: `.trellis/spec/wvp-pro/backend/`
 
-- Frontend guidelines: `.trellis/spec/be.teletask.onvif-java/frontend/`
+- Frontend guidelines: `.trellis/spec/wvp-pro/frontend/`
 
 
 ### Thinking guides (already populated)
