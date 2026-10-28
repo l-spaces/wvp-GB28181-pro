@@ -90,3 +90,44 @@ web 菜单按角色过滤：登录落地 roleId 到 wvp_role cookie（auth.js �
 ### Next Steps
 
 - WebRTC 播放若内网使用，仍需处理 [rtc] externIP 回环问题（本次未涉及，播放器默认走 ws-flv）
+
+
+## Session 4: 从源码合并上游 44 提交（2.7.4 基线）
+<!-- trellis-session: v=2 fp=d941600042099497 -->
+
+**Date**: 2026-10-28
+**Task**: 从源码合并上游 44 提交（2.7.4 基线）
+**Package**: be.teletask.onvif-java
+**Branch**: `update/upstream-274`
+
+### Summary
+
+从源码远程合并上游 44 个提交到 update/upstream-274，保持 2.7.4 数据库基线。解决 5 处文本冲突（AGENTS.md/README.md/InviteStreamServiceImpl/两份更新 SQL），并处理 4 类静默陷阱：清理 InviteStreamServiceImpl 冲突区外的本地僵尸清理残留、补回 wvp_user.default_password、将 wvp_record_plan_item 字段改为 start_time/stop_time（三份 init + 两份 update 新增 20261019 段）、补入 wvp_user_channel 到 docker SQL、同步 script/sql 部署副本、pom 版本改回 2.7.4。编译与前端构建均通过，已合回 main。
+
+### Main Changes
+
+- 合并 源码/master 44 提交，冲突基点为 fb45787da
+- InviteStreamServiceImpl 采上游 InviteCallbackHolder 架构，删除本地 inviteKeyCreateTimeMap/cleanStaleInviteKeys
+- 数据库 2.7.4 三方言补齐 default_password、wvp_user_channel、start_time/stop_time
+- pom.xml 版本保持 2.7.4，产物 wvp-pro-2.7.4-10280433.jar
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2f73954b0` | Merge 源码/master into update/upstream-274（保持 2.7.4 数据库基线） |
+| `df6f15dad` | Merge branch 'update/upstream-274' |
+
+### Testing
+
+- [OK] mvn -o clean package 成功（783 主源码 + 20 测试源码）
+- [OK] web npm run build:prod 成功，jar 内含 134 个 static 条目
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 确认后 git push 到 二开/main
+- 后续处理部署包 script/zlm/config.ini 缺失与未跟踪文件清理
