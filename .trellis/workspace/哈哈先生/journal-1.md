@@ -171,3 +171,42 @@ web 菜单按角色过滤：登录落地 roleId 到 wvp_role cookie（auth.js �
 
 - git push 到 二开/main
 - 处理 script/zlm/config.ini 缺失（compose 仍挂载）
+
+
+## Session 6: 清理工作区（c 项）：删除误生成文件与残留 worktree
+<!-- trellis-session: v=2 fp=2302678765c610cd -->
+
+**Date**: 2026-10-28
+**Task**: 清理工作区（c 项）：删除误生成文件与残留 worktree
+**Package**: be.teletask.onvif-java
+**Branch**: `main`
+
+### Summary
+
+清理合并后残留：删除 （rg 报错文本）与 script/docker-compose.yml.bak.20260908101745（含明文口令）；文档/ 含明文服务器地址与账号口令，加入 .gitignore 后保留在本地；删除停在分叉基点 fb45787da 的残留 worktree 及其分支（无独有提交，demo/ 已在 main）。
+
+### Main Changes
+
+- 删除 $null 与 script/docker-compose.yml.bak.20260908101745
+- .gitignore 新增 /文档/ 忽略规则
+- 删除 worktree-agent-aa75352d232bd53f8 工作区与分支
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `544919b2c` | chore(git): 忽略本地文档目录 |
+
+### Testing
+
+- [OK] git status 完全干净（无未跟踪文件）
+- [OK] git worktree list 仅剩主工作区
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 分支清理待用户决定（V2/feature/*/master/update-upstream 均已并入 main）
+- 处理 script/zlm/config.ini 缺失

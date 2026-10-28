@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 5
+- **Total Sessions**: 6
 - **Last Active**: 2026-10-28
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~173 | Active |
+| `journal-1.md` | ~212 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 6 | 2026-10-28 | 清理工作区（c 项）：删除误生成文件与残留 worktree | `544919b2c` | `main` |
 | 5 | 2026-10-28 | 补齐 2.7.4 SQL 副本缺口（H2 与 docker） | `0fa1dfe23` | `main` |
 | 4 | 2026-10-28 | 从源码合并上游 44 提交（2.7.4 基线） | `2f73954b0`, `df6f15dad` | `update/upstream-274` |
 | 3 | 2026-09-16 | 内网播放失败（播放地址为公网IP）：诊断·修复·沉淀 | `b95bc148e` | `main` |
