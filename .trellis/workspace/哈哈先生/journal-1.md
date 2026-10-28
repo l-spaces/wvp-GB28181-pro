@@ -210,3 +210,46 @@ web 菜单按角色过滤：登录落地 roleId 到 wvp_role cookie（auth.js �
 
 - 分支清理待用户决定（V2/feature/*/master/update-upstream 均已并入 main）
 - 处理 script/zlm/config.ini 缺失
+
+
+## Session 7: 恢复 ZLM 配置并部署到本地环境
+<!-- trellis-session: v=2 fp=6fb3d77abb09b35f -->
+
+**Date**: 2026-10-28
+**Task**: 恢复 ZLM 配置并部署到本地环境
+**Package**: be.teletask.onvif-java
+**Branch**: `main`
+
+### Summary
+
+恢复 7aa66b5c7 中被误删的 script/zlm/config.ini（逐字节恢复），修复 compose 挂载缺失导致的部署包不完整；随后全量部署到 CY-PC WSL2（/home/docker/wvp2）：备份 → 执行 20261019 数据库迁移 → 上传新 jar → 重建镜像 → 启动四容器 → 按规程单独 restart zlmediakit。部署后三大健康标志通过，页面 HTTP 200，二开功能（用户通道列表/非管理员 403）实测正常。
+
+### Main Changes
+
+- 恢复 script/zlm/config.ini（714 行，43430 字节）
+- 服务器执行 20261019 迁移：wvp_record_plan_item start/stop → start_time/stop_time
+- 部署新 jar 并重建 wvp2-wvp 镜像
+- 重置 admin/test1 密码为 admin（default_password=0）
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `907b67dde` | fix(script): 恢复被误删的 ZLM 配置 |
+
+### Testing
+
+- [OK] 页面 HTTP 200，标题 WVP视频平台
+- [OK] SIP SERVER 启动成功 / Started VManageBootstrap / ZLM-连接成功
+- [OK] 17 个 ZLM hook 完好，on_publish 指向 wvp:18080
+- [OK] admin 用户通道列表返回数据，test1 返回 403
+- [OK] 13:37:30 后无心跳超时、无 ERROR
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 确认 zlm rtp.port_range 与 compose 映射是否统一（30000-30100 vs 30000-30060）
+- 上游更新脚本在存量库不幂等（wvp_20260417 段缺 IF EXISTS），建议补进 spec
