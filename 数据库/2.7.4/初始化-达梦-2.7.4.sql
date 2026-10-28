@@ -1007,6 +1007,8 @@ END;
 CREATE TABLE wvp_record_plan_item
 (
     id          int identity(1,1) primary key,
+    start       int,
+    stop        int,
     start_time  int,
     stop_time   int,
     week_day    int,
@@ -1016,6 +1018,8 @@ CREATE TABLE wvp_record_plan_item
 );
 COMMENT ON TABLE wvp_record_plan_item IS '录像计划条目表';
 COMMENT ON COLUMN wvp_record_plan_item.id IS '主键ID';
+COMMENT ON COLUMN wvp_record_plan_item.start IS '开始时间（分钟）[上游兼容列，代码不使用]';
+COMMENT ON COLUMN wvp_record_plan_item.stop IS '结束时间（分钟）[上游兼容列，代码不使用]';
 COMMENT ON COLUMN wvp_record_plan_item.start_time IS '开始时间（分钟）';
 COMMENT ON COLUMN wvp_record_plan_item.stop_time IS '结束时间（分钟）';
 COMMENT ON COLUMN wvp_record_plan_item.week_day IS '星期（0-6）';

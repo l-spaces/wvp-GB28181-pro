@@ -94,9 +94,9 @@ export PATH="$JAVA_HOME/bin:$PATH"
 mvn -o -Dmaven.repo.local=D:/MavenReposity -DskipTests clean package
 ```
 
-**产物**：`target/wvp-pro-2.7.4-<MMddHHmm>.jar`
+**产物**：`target/wvp-pro-3.0.0-<MMddHHmm>.jar`
 
-> 版本号固定 `2.7.4`（`pom.xml` 不跟随上游 3.0.0）。
+> 版本号为 `3.0.0`，与上游 `源码/master` 一致。
 > `pom.xml` 硬编码 `<skipTests>true</skipTests>`，`-DskipTests=false` 无效；但 **test-compile 仍会编译测试**。
 
 ### 2.4 产物自检
@@ -104,7 +104,7 @@ mvn -o -Dmaven.repo.local=D:/MavenReposity -DskipTests clean package
 ```bash
 python -c "
 import zipfile
-z=zipfile.ZipFile('target/wvp-pro-2.7.4-XXXX.jar')
+z=zipfile.ZipFile('target/wvp-pro-3.0.0-XXXX.jar')
 print('entries:', len(z.namelist()))
 print('static:', sum(1 for n in z.namelist() if 'BOOT-INF/classes/static/' in n))
 "
@@ -137,14 +137,20 @@ docker exec wvp-mysql mysqldump -uroot -p'Wvp@2026!mysql' \
 
 ```bash
 # 开发机
-scp target/wvp-pro-2.7.4-XXXX.jar root@192.168.1.100:/home/docker/wvp2/jar/wvp.jar.new
+scp target/wvp-pro-3.0.0-XXXX.jar root@192.168.1.100:/home/docker/wvp2/jar/wvp.jar.new
 ```
 
 **文件名必须是 `wvp.jar`** —— `script/jar/Dockerfile` 里写死 `COPY wvp.jar /opt/wvp/wvp.jar`。
 
 ### 3.3 数据库迁移（仅 SQL 有变更时）
 
-#### ⚠️ 更新脚本在存量库上不幂等
+#### ⚠️ 更新脚本在存量库上不幂等（仅限 2.7.4）
+
+> **`数据库/3.0.0/更新-*.sql` 是幂等的，可整份重复执行**，无需按段提取。
+> 三段均为条件式：`20260606`/`20261019` 用 `information_schema` 判断后 `ALTER`，
+> `20260909` 用 `create table IF NOT EXISTS`。
+> 幂等的边界：对象已存在时**整表/整索引跳过**，不会补齐结构差异（如某库的
+> `wvp_user_channel` 缺 `uk_user_channel`），此段不会修复。
 
 `数据库/2.7.4/更新-mysql-2.7.4.sql` 的 `wvp_20260417` 段首行：
 
@@ -196,23 +202,29 @@ UNION ALL SELECT 'start_time', COUNT(*) FROM information_schema.columns
   WHERE table_schema='wvp2' AND table_name='wvp_record_plan_item' AND column_name='start_time';
 ```
 
-### 3.4 替换 jar 并重建镜像
+### 3.4 替换 jar 并重启容器
 
 ```bash
 cd /home/docker/wvp2/jar
 mv wvp.jar.new wvp.jar
 
 cd /home/docker/wvp2
-docker compose build wvp
+docker compose restart wvp
 ```
 
-> 虽然 `jar/` 是挂载的，但 Dockerfile 用 `COPY` 把 jar 打进镜像，所以**必须重建**才能生效。
+> 部署机的 compose 把 jar 以**挂载**方式注入（`- ./jar/wvp.jar:/opt/wvp/wvp.jar`），
+> 覆盖了镜像内 `COPY` 的版本，因此**换 jar 只需 restart，无需 build**。
+> 仅当 `jar/Dockerfile` 或依赖变化时才需要 `docker compose build wvp`。
 
 ### 3.5 启动
 
 ```bash
 docker compose up -d
 ```
+
+> **注意**：`up -d` 只会重建配置变化的容器。若 compose 有改动（如换 SQL 挂载），
+> `up -d` 会重建 mysql/redis 等受影响的容器，但**不会**重启 wvp——必须单独 `restart wvp`。
+> MySQL 重建时数据卷 `mysql/data` 保留；但若挂载路径写错，MySQL 会以空库启动并执行 init 脚本。
 
 ### 3.6 单独重启 zlmediakit（硬性规程）
 
@@ -257,7 +269,7 @@ docker compose logs wvp | grep -E '构建版本|构建时间'
 ```
 
 ```
-构建版本： 2.7.4
+构建版本： 3.0.0
 构建时间： 2026-10-28T12:33:13+08:00
 ```
 
@@ -312,7 +324,7 @@ docker compose logs --since 1m wvp | grep -c 'ERROR'          # 期望 0
 cd /home/docker/wvp2/jar
 cp -a wvp.jar.bak-<TS> wvp.jar
 cd ..
-docker compose build wvp && docker compose up -d wvp
+docker compose restart wvp
 docker compose restart zlmediakit
 ```
 
@@ -357,8 +369,7 @@ docker compose up -d && docker compose restart zlmediakit
 | `[ZLM-心跳超时]` 持续出现 | 启动后没单独 restart zlmediakit | `docker compose restart zlmediakit` |
 | ZLM 启动异常 / 配置读不到 | `zlm/config.ini` 缺失 → Docker 把挂载源建成同名**目录** | 恢复 config.ini，删掉那个目录 |
 | 录像计划查询报 `Unknown column 'start_time'` | jar 已更新但数据库没迁移 | 执行 `20261019` 段 |
-| 新装库缺 `wvp_user_channel` / `default_password` | SQL 脚本未同步 | 用 `数据库/2.7.4/初始化-mysql` 建库 |
-| 构建产物名是 `wvp-pro-3.0.0-*` | `pom.xml` 版本被改成 3.0.0 | 改回 `2.7.4`（上游合并时会被自动带入） |
+| 新装库缺 `wvp_user_channel` / `default_password` | SQL 脚本未同步 | 用 `数据库/3.0.0/初始化-mysql-3.0.0` 建库；存量库执行 `数据库/3.0.0/更新-mysql-3.0.0.sql` |
 | jar 内 `static` 为 0 | 跳过 `npm run build:prod` | 先构建前端再打包 |
 | 登录报"认证失败" | 密码被改过 | 见 §8 |
 
