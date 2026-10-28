@@ -8,7 +8,6 @@ const RoleKey = 'wvp_role'
 const expires = 30
 
 export function getToken() {
-  console.log('Getting token...')
   return Cookies.get(TokenKey)
 }
 

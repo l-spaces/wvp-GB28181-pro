@@ -383,13 +383,13 @@ create table IF NOT EXISTS wvp_cloud_record
 drop table IF EXISTS wvp_user;
 create table IF NOT EXISTS wvp_user
 (
-    id               serial primary key COMMENT '主键ID',
-    username         character varying(255) COMMENT '用户名',
-    password         character varying(255) COMMENT '密码（MD5）',
-    role_id          integer COMMENT '角色ID',
-    create_time      character varying(50) COMMENT '创建时间',
-    update_time      character varying(50) COMMENT '更新时间',
-    push_key         character varying(50) COMMENT '推送密钥',
+    id          serial primary key COMMENT '主键ID',
+    username    character varying(255) COMMENT '用户名',
+    password    character varying(255) COMMENT '密码（MD5）',
+    role_id     integer COMMENT '角色ID',
+    create_time character varying(50) COMMENT '创建时间',
+    update_time character varying(50) COMMENT '更新时间',
+    push_key    character varying(50) COMMENT '推送密钥',
     default_password bool default false COMMENT '是否使用默认密码',
     constraint uk_user_username unique (username)
 );
@@ -477,8 +477,8 @@ drop table IF EXISTS wvp_record_plan_item;
 create table IF NOT EXISTS wvp_record_plan_item
 (
     id              serial primary key COMMENT '主键ID',
-    start           int COMMENT '开始时间（分钟）',
-    stop            int COMMENT '结束时间（分钟）',
+    start_time      int COMMENT '开始时间（分钟）',
+    stop_time       int COMMENT '结束时间（分钟）',
     week_day        int COMMENT '星期（0-6）',
     plan_id         int COMMENT '所属录像计划ID',
     create_time     character varying(50) COMMENT '创建时间',

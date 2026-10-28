@@ -425,6 +425,17 @@ VALUES (1, 'admin', '21232f297a57a5a743894a0e4a801fc3', 1, '2021-04-13 14:14:57'
 INSERT INTO wvp_user_role
 VALUES (1, 'admin', '0', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
 
+-- 用户通道关联表，存储用户与通道（wvp_device_channel.id 数据库主键）的关联关系
+drop table IF EXISTS wvp_user_channel;
+create table IF NOT EXISTS wvp_user_channel
+(
+    id          serial primary key COMMENT '主键ID',
+    user_id     integer NOT NULL COMMENT '用户ID（wvp_user.id）',
+    channel_id  integer NOT NULL COMMENT '通道数据库主键ID（wvp_device_channel.id）',
+    create_time character varying(50) NOT NULL COMMENT '创建时间',
+    constraint uk_user_channel unique (user_id, channel_id)
+);
+
 drop table IF EXISTS wvp_common_group;
 create table IF NOT EXISTS wvp_common_group
 (
@@ -467,8 +478,8 @@ drop table IF EXISTS wvp_record_plan_item;
 create table IF NOT EXISTS wvp_record_plan_item
 (
     id              serial primary key,
-    start           int,
-    stop            int,
+    start_time      int,
+    stop_time       int,
     week_day        int,
     plan_id         int,
     create_time     character varying(50),

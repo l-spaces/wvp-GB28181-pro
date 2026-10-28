@@ -691,13 +691,13 @@ COMMENT ON COLUMN wvp_cloud_record.time_len IS '时长';
 drop table IF EXISTS wvp_user;
 create table IF NOT EXISTS wvp_user
 (
-    id               serial primary key,
-    username         character varying(255),
-    password         character varying(255),
-    role_id          integer,
-    create_time      character varying(50),
-    update_time      character varying(50),
-    push_key         character varying(50),
+    id          serial primary key,
+    username    character varying(255),
+    password    character varying(255),
+    role_id     integer,
+    create_time character varying(50),
+    update_time character varying(50),
+    push_key    character varying(50),
     default_password bool default false,
     constraint uk_user_username unique (username)
 );
@@ -833,8 +833,8 @@ drop table IF EXISTS wvp_record_plan_item;
 create table IF NOT EXISTS wvp_record_plan_item
 (
     id              serial primary key,
-    "start"           int,
-    stop            int,
+    start_time      int,
+    stop_time       int,
     week_day        int,
     plan_id        int,
     create_time     character varying(50),
@@ -842,8 +842,8 @@ create table IF NOT EXISTS wvp_record_plan_item
 );
 COMMENT ON TABLE wvp_record_plan_item IS '录像计划条目表';
 COMMENT ON COLUMN wvp_record_plan_item.id IS '主键ID';
-COMMENT ON COLUMN wvp_record_plan_item."start" IS '开始时间（分钟）';
-COMMENT ON COLUMN wvp_record_plan_item.stop IS '结束时间（分钟）';
+COMMENT ON COLUMN wvp_record_plan_item.start_time IS '开始时间（分钟）';
+COMMENT ON COLUMN wvp_record_plan_item.stop_time IS '结束时间（分钟）';
 COMMENT ON COLUMN wvp_record_plan_item.week_day IS '星期（0-6）';
 COMMENT ON COLUMN wvp_record_plan_item.plan_id IS '所属录像计划ID';
 COMMENT ON COLUMN wvp_record_plan_item.create_time IS '创建时间';
