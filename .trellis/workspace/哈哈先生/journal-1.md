@@ -253,3 +253,41 @@ web 菜单按角色过滤：登录落地 roleId 到 wvp_role cookie（auth.js �
 
 - 确认 zlm rtp.port_range 与 compose 映射是否统一（30000-30100 vs 30000-30060）
 - 上游更新脚本在存量库不幂等（wvp_20260417 段缺 IF EXISTS），建议补进 spec
+
+
+## Session 8: 将 二开/master 对齐 源码/master
+<!-- trellis-session: v=2 fp=5df1a113e070a962 -->
+
+**Date**: 2026-10-28
+**Task**: 将 二开/master 对齐 源码/master
+**Package**: be.teletask.onvif-java
+**Branch**: `main`
+
+### Summary
+
+按要求将 二开/master 强制重置为 源码/master（4e8a45a63）。二开/master 原位置 4bb47d72f 的 15 个提交已确认全部保留在 main 历史中（4bb47d72f 是 main 祖先），强制推送无数据丢失。推送前打了 backup/二开-master-before-reset-20261028 tag 作为安全网。main 分支未受影响。
+
+### Main Changes
+
+- 本地 master 重置到 源码/master 并修正跟踪为 二开/master
+- git push --force-with-lease 二开 master:master
+- 打备份 tag backup/二开-master-before-reset-20261028 (指向 4bb47d72f)
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] git ls-remote 二开 refs/heads/master = 4e8a45a6307ab7b7b7bd2f8f4dff97fe0f4cfa99
+- [OK] git diff --name-only 源码/master 二开/master = 0 个差异
+- [OK] main 仍为 d25ac3612，二开功能未受影响
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- main 保持二开完整状态（上游 + 二开改动）
+- backup tag 可按需删除：git push 二开 --delete backup/二开-master-before-reset-20261028

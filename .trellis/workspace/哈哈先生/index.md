@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 7
+- **Total Sessions**: 8
 - **Last Active**: 2026-10-28
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~255 | Active |
+| `journal-1.md` | ~293 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 8 | 2026-10-28 | 将 二开/master 对齐 源码/master | - | `main` |
 | 7 | 2026-10-28 | 恢复 ZLM 配置并部署到本地环境 | `907b67dde` | `main` |
 | 6 | 2026-10-28 | 清理工作区（c 项）：删除误生成文件与残留 worktree | `544919b2c` | `main` |
 | 5 | 2026-10-28 | 补齐 2.7.4 SQL 副本缺口（H2 与 docker） | `0fa1dfe23` | `main` |
