@@ -291,3 +291,41 @@ web 菜单按角色过滤：登录落地 roleId 到 wvp_role cookie（auth.js �
 
 - main 保持二开完整状态（上游 + 二开改动）
 - backup tag 可按需删除：git push 二开 --delete backup/二开-master-before-reset-20261028
+
+
+## Session 9: 沉淀部署手册到 spec
+<!-- trellis-session: v=2 fp=d617433118533221 -->
+
+**Date**: 2026-10-28
+**Task**: 沉淀部署手册到 spec
+**Package**: be.teletask.onvif-java
+**Branch**: `main`
+
+### Summary
+
+新增 .trellis/spec/be.teletask.onvif-java/backend/deployment-runbook.md（426 行），作为 script/README.md 的补充而非替代：前者讲目录结构/端口规划/设备接入/配置对应关系/踩坑 1-10，本文讲开发机构建、CY-PC/WSL2 部署流程、数据库迁移陷阱、验证清单、回滚、账号重置。更新 backend/index.md 索引。
+
+### Main Changes
+
+- 新增 deployment-runbook.md：环境拓扑/portproxy/构建/部署六步/验证/回滚
+- 记录更新脚本在存量库不幂等（wvp_20260417 缺 IF EXISTS）与按段提取的 sed 陷阱
+- backend/index.md 索引新增部署手册条目
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b6dc61c52` | docs(spec): 沉淀部署手册（部署运行手册） |
+
+### Testing
+
+- [OK] 文档 426 行，10 个主章节，结构完整
+- [OK] 相对链接 script/README.md 路径有效性已验证
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 按需推送到 二开/main

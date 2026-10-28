@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 8
+- **Total Sessions**: 9
 - **Last Active**: 2026-10-28
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~293 | Active |
+| `journal-1.md` | ~331 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 9 | 2026-10-28 | 沉淀部署手册到 spec | `b6dc61c52` | `main` |
 | 8 | 2026-10-28 | 将 二开/master 对齐 源码/master | - | `main` |
 | 7 | 2026-10-28 | 恢复 ZLM 配置并部署到本地环境 | `907b67dde` | `main` |
 | 6 | 2026-10-28 | 清理工作区（c 项）：删除误生成文件与残留 worktree | `544919b2c` | `main` |
