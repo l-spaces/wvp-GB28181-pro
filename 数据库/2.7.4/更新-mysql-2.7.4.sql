@@ -288,3 +288,30 @@ create table IF NOT EXISTS wvp_user_channel (
     create_time character varying(50) NOT NULL COMMENT '创建时间',
     constraint uk_user_channel unique (user_id, channel_id)
 );
+
+/*
+* 20261019 录像计划条目表字段改名，避免使用数据库关键字 start / stop
+*/
+DROP PROCEDURE IF EXISTS `wvp_20261019`;
+DELIMITER //  -- 重定义分隔符避免分号冲突
+CREATE PROCEDURE `wvp_20261019`()
+BEGIN
+    IF EXISTS (SELECT column_name FROM information_schema.columns
+               WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_record_plan_item' and column_name = 'start')
+       AND NOT EXISTS (SELECT column_name FROM information_schema.columns
+               WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_record_plan_item' and column_name = 'start_time')
+    THEN
+        ALTER TABLE wvp_record_plan_item CHANGE `start` start_time int COMMENT '开始时间（分钟）';
+    END IF;
+
+    IF EXISTS (SELECT column_name FROM information_schema.columns
+               WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_record_plan_item' and column_name = 'stop')
+       AND NOT EXISTS (SELECT column_name FROM information_schema.columns
+               WHERE TABLE_SCHEMA = (SELECT DATABASE()) and  table_name = 'wvp_record_plan_item' and column_name = 'stop_time')
+    THEN
+        ALTER TABLE wvp_record_plan_item CHANGE `stop` stop_time int COMMENT '结束时间（分钟）';
+    END IF;
+END; //
+DELIMITER ;
+call wvp_20261019();
+DROP PROCEDURE wvp_20261019;

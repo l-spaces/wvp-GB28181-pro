@@ -1,0 +1,10 @@
+{"file": ".trellis/spec/be.teletask.onvif-java/backend/index.md", "reason": "检查后端改动是否符合层规范"}
+{"file": ".trellis/spec/be.teletask.onvif-java/backend/quality-guidelines.md", "reason": "质量检查清单"}
+{"file": ".trellis/spec/be.teletask.onvif-java/backend/database-guidelines.md", "reason": "SQL 脚本检查依据"}
+{"file": ".trellis/spec/be.teletask.onvif-java/backend/channel-permission-filtering.md", "reason": "确认通道权限过滤能力未被合并破坏"}
+{"file": ".trellis/spec/be.teletask.onvif-java/backend/error-handling.md", "reason": "错误处理规范，检查合并引入的新代码"}
+{"file": ".trellis/spec/be.teletask.onvif-java/backend/logging-guidelines.md", "reason": "日志规范，检查合并引入的日志写法"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "跨层一致性检查（SQL 字段 → Java → 前端）"}
+{"file": ".trellis/tasks/10-28-upstream-merge-274/prd.md", "reason": "验收标准 AC1-AC10"}
+{"file": ".trellis/tasks/10-28-upstream-merge-274/design.md", "reason": "冲突解决策略与缺口矩阵"}
+{"file": ".trellis/tasks/10-28-upstream-merge-274/implement.md", "reason": "验证命令清单"}

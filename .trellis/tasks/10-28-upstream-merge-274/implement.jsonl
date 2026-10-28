@@ -1,0 +1,8 @@
+{"file": ".trellis/spec/be.teletask.onvif-java/backend/index.md", "reason": "后端层编码规范入口，合并后改 Java 代码须遵循"}
+{"file": ".trellis/spec/be.teletask.onvif-java/backend/database-guidelines.md", "reason": "数据库脚本与多方言约定，SQL 补齐需遵守"}
+{"file": ".trellis/spec/be.teletask.onvif-java/backend/channel-permission-filtering.md", "reason": "二开通道权限过滤契约，合并后必须保持"}
+{"file": ".trellis/spec/be.teletask.onvif-java/backend/quality-guidelines.md", "reason": "后端质量检查要求"}
+{"file": ".trellis/spec/be.teletask.onvif-java/frontend/index.md", "reason": "前端层规范入口，前端重建与回归需遵守"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "跨层数据流检查，SQL 字段改名会影响 Java/前端多层"}
+{"file": ".trellis/tasks/10-28-upstream-merge-274/design.md", "reason": "冲突解决与数据库补齐的技术设计"}
+{"file": ".trellis/tasks/10-28-upstream-merge-274/implement.md", "reason": "分阶段执行计划与验证命令"}

@@ -4,12 +4,15 @@
     * [编译](_content/introduction/compile.md)
     * [配置](_content/introduction/config.md)
     * [部署](_content/introduction/deployment.md)
+* **开发规范**
+    * [编程规范](编程规范.md)
 * **功能与使用**
     * [接入设备](_content/ability/device.md)
     * [国标设备](_content/ability/device_use.md)
     * [推流列表](_content/ability/push.md)
     * [拉流代理](_content/ability/proxy.md)
     * [云端录像](_content/ability/cloud_record.md)
+    * [云录像独立会话](_content/ability/cloud_record_sessions.md)
     * [节点管理](_content/ability/node_manager.md)
     * [通道管理](_content/ability/channel.md)
     * [国标级联](_content/ability/cascade2.md)

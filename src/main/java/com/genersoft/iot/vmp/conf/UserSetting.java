@@ -44,6 +44,15 @@ public class UserSetting {
     private Integer recordInfoTimeout = 15000;
 
     /**
+     * [可选] 级联录像查询(RecordInfo)回复的每页记录数量。
+     * 大于 0 时: 单条 SIP MESSAGE 最多携带这么多条录像记录, 超出部分按多页顺序发送
+     * (SN 不变, SumNum 仍为总条数, 每页 RecordList 的 Num 为本页条数);
+     * 小于等于 0 时: 不分页, 一次发送全部, 与历史行为一致。
+     * 默认 1000 足够大, 保证现有行为不变; 上级平台受 MTU 限制时(尤其 UDP)建议调小。
+     */
+    private Integer recordInfoPageSize = 1000;
+
+    /**
      * 上级点播等待超时时间,单位：毫秒
      */
     private int platformPlayTimeout = 20000;
@@ -142,6 +151,16 @@ public class UserSetting {
      * 服务ID，不写则为000000
      */
     private String serverId = "000000";
+
+    /**
+     * 云录像独立观看会话上限，按WVP实例计算，默认1024
+     */
+    private Integer cloudRecordSessionMax = 1024;
+
+    /**
+     * 云录像会话暂停后的保留时长，单位毫秒，默认120000
+     */
+    private Long cloudRecordSessionPauseRetentionMs = 120_000L;
 
 
     /**
@@ -245,6 +264,12 @@ public class UserSetting {
      * 是否使用拉流的方式获取快照，默认false，避免流量大规模消耗，开启后则使用拉流的方式获取快照
      */
     private boolean alarmSnapByStream = false;
+
+    /**
+     * 截图是否使用ZLM内部的解码通道(async=1)，默认 false 使用 ffmpeg 命令行截图，
+     * 部分环境下内部解码通道截图会失败(ZLM 报错 decode frame timeout)，此时保持关闭即可。
+     */
+    private boolean snapAsync = true;
 
     /**
      * 报警订阅白名单，设置后只有在此列表中的上级平台才会接收报警订阅消息，默认不设置则不限制

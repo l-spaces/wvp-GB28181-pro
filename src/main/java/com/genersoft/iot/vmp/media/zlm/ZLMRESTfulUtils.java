@@ -646,12 +646,13 @@ public class ZLMRESTfulUtils {
         sendPost(mediaServer, "kick_sessions",param, null);
     }
 
-    public byte[] getSnap(MediaServer mediaServer, String streamUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
+    public byte[] getSnap(MediaServer mediaServer, String streamUrl, int timeout_sec, int expire_sec,
+                          boolean async, String targetPath, String fileName) {
         Map<String, Object> param = new HashMap<>(3);
         param.put("url", streamUrl);
         param.put("timeout_sec", timeout_sec);
         param.put("expire_sec", expire_sec);
-        param.put("async", 1);
+        param.put("async", async ? 1 : 0);
         return sendGetForImg(mediaServer, "getSnap", param, targetPath, fileName);
     }
 
@@ -745,13 +746,29 @@ public class ZLMRESTfulUtils {
         }
     }
 
+    /** 保持既有文件加载参数，仅独立会话入口启用定位和资源控制选项。 */
     public ZLMResult<?> loadMP4File(MediaServer mediaServer, String app, String stream, String datePath) {
+        return loadMP4File(mediaServer, app, stream, datePath, null);
+    }
+
+    /**
+     * 为独立文件会话在创建时定位，并禁用重复生成MP4。
+     * 无人观看自动关闭由ZLM对该接口固定开启，不通过参数控制。
+     */
+    public ZLMResult<?> loadMP4File(MediaServer mediaServer, String app, String stream, String datePath,
+                                   Long positionMs) {
         Map<String, Object> param = new HashMap<>(1);
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
         param.put("stream", stream);
         param.put("file_path", datePath);
         param.put("file_repeat", "0");
+        if (positionMs != null) {
+            param.put("seek_ms", positionMs);
+            param.put("enable_mp4", "0");
+            param.put("enable_rtsp", "1");
+            param.put("enable_fmp4", "1");
+        }
         String response = sendPost(mediaServer, "loadMP4File", param, null);
         if (response == null) {
             return ZLMResult.getFailForMediaServer();
