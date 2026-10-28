@@ -131,3 +131,43 @@ web 菜单按角色过滤：登录落地 roleId 到 wvp_role cookie（auth.js �
 
 - 确认后 git push 到 二开/main
 - 后续处理部署包 script/zlm/config.ini 缺失与未跟踪文件清理
+
+
+## Session 5: 补齐 2.7.4 SQL 副本缺口（H2 与 docker）
+<!-- trellis-session: v=2 fp=b27074e22dcca0c3 -->
+
+**Date**: 2026-10-28
+**Task**: 补齐 2.7.4 SQL 副本缺口（H2 与 docker）
+**Package**: be.teletask.onvif-java
+**Branch**: `main`
+
+### Summary
+
+合并收尾：H2 schema 严重过时（缺 5 表、wvp_device_mobile_position 是重命名前旧结构、start/stop 旧列名），补齐后表清单与 mysql 2.7.4 完全一致；docker/mysql/db/wvp.sql 补齐 3 表并修正旧表名。H2 schema+data 用 H2 2.3.232 引擎实际执行验证通过。
+
+### Main Changes
+
+- H2: 补 wvp_alarm/wvp_jt_channel/wvp_jt_terminal/wvp_mobile_position/wvp_user_channel
+- H2: wvp_device_mobile_position（旧结构）→ wvp_mobile_position（代码实际使用）
+- docker/wvp.sql: 补 wvp_alarm/wvp_jt_channel/wvp_jt_terminal，修正旧表名
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0fa1dfe23` | fix(db): 补齐 H2 与 docker SQL 副本的 2.7.4 缺口 |
+
+### Testing
+
+- [OK] H2 2.3.232 引擎执行 schema+data 成功（exit 0）
+- [OK] 六份 2.7.4 SQL 表清单逐一比对一致
+- [OK] mvn compile 通过
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- git push 到 二开/main
+- 处理 script/zlm/config.ini 缺失（compose 仍挂载）
