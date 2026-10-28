@@ -54,19 +54,16 @@ create table IF NOT EXISTS wvp_device_alarm
     create_time       character varying(50) not null
 );
 
-create table IF NOT EXISTS wvp_device_mobile_position
+create table IF NOT EXISTS wvp_mobile_position
 (
     id              bigint primary key,
-    device_id       character varying(50) not null,
     channel_id      character varying(50) not null,
-    device_name     character varying(255),
-    time            character varying(50),
+    timestamp       bigint,
     longitude       double precision,
     latitude        double precision,
     altitude        double precision,
     speed           double precision,
     direction       double precision,
-    report_source   character varying(50),
     create_time     character varying(50)
 );
 
@@ -428,10 +425,69 @@ create table IF NOT EXISTS wvp_record_plan
 create table IF NOT EXISTS wvp_record_plan_item
 (
     id              bigint primary key,
-    start           int,
-    stop            int,
+    start_time      int,
+    stop_time       int,
     week_day        int,
     plan_id         int,
     create_time     character varying(50),
     update_time     character varying(50)
+);
+
+create table IF NOT EXISTS wvp_jt_terminal
+(
+    id               bigint primary key,
+    phone_number     character varying(50),
+    terminal_id      character varying(50),
+    province_id      character varying(50),
+    province_text    character varying(100),
+    city_id          character varying(50),
+    city_text        character varying(100),
+    maker_id         character varying(50),
+    model            character varying(50),
+    plate_color      character varying(50),
+    plate_no         character varying(50),
+    longitude        double precision,
+    latitude         double precision,
+    status           bool default false,
+    register_time    character varying(50) default null,
+    update_time      character varying(50) not null,
+    create_time      character varying(50) not null,
+    geo_coord_sys    character varying(50),
+    media_server_id  character varying(50) default 'auto',
+    sdp_ip           character varying(50),
+    constraint uk_jt_device_id_device_id unique (id, phone_number)
+);
+
+create table IF NOT EXISTS wvp_jt_channel
+(
+    id               bigint primary key,
+    terminal_db_id   integer,
+    channel_id       integer,
+    has_audio        bool default false,
+    name             character varying(255),
+    update_time      character varying(50) not null,
+    create_time      character varying(50) not null,
+    constraint uk_jt_channel_id_device_id unique (terminal_db_id, channel_id)
+);
+
+create table IF NOT EXISTS wvp_alarm
+(
+    id               bigint primary key,
+    channel_id       integer,
+    description      character varying(255),
+    snap_path        character varying(255),
+    record_path      character varying(255),
+    longitude        double precision,
+    latitude         double precision,
+    alarm_type       integer,
+    alarm_time       bigint
+);
+
+create table IF NOT EXISTS wvp_user_channel
+(
+    id               bigint primary key,
+    user_id          integer NOT NULL,
+    channel_id       integer NOT NULL,
+    create_time      character varying(50) NOT NULL,
+    constraint uk_user_channel unique (user_id, channel_id)
 );

@@ -66,20 +66,17 @@ create table IF NOT EXISTS wvp_device_alarm
     create_time       character varying(50) not null
 );
 
-drop table IF EXISTS wvp_device_mobile_position;
-create table IF NOT EXISTS wvp_device_mobile_position
+drop table IF EXISTS wvp_mobile_position;
+create table IF NOT EXISTS wvp_mobile_position
 (
     id              serial primary key,
-    device_id       character varying(50) not null,
     channel_id      character varying(50) not null,
-    device_name     character varying(255),
-    time            character varying(50),
+    timestamp       bigint,
     longitude       double precision,
     latitude        double precision,
     altitude        double precision,
     speed           double precision,
     direction       double precision,
-    report_source   character varying(50),
     create_time     character varying(50)
 );
 
@@ -779,3 +776,59 @@ DELIMITER ;
 
 
 
+
+/*交通部 JT/T 1076 终端信息*/
+drop table IF EXISTS wvp_jt_terminal;
+create table IF NOT EXISTS wvp_jt_terminal
+(
+    id               serial primary key,
+    phone_number     character varying(50),
+    terminal_id      character varying(50),
+    province_id      character varying(50),
+    province_text    character varying(100),
+    city_id          character varying(50),
+    city_text        character varying(100),
+    maker_id         character varying(50),
+    model            character varying(50),
+    plate_color      character varying(50),
+    plate_no         character varying(50),
+    longitude        double precision,
+    latitude         double precision,
+    status           bool default false,
+    register_time    character varying(50) default null,
+    update_time      character varying(50) not null,
+    create_time      character varying(50) not null,
+    geo_coord_sys    character varying(50),
+    media_server_id  character varying(50) default 'auto',
+    sdp_ip           character varying(50),
+    constraint uk_jt_device_id_device_id unique (id, phone_number)
+);
+
+/*交通部 JT/T 1076 通道信息*/
+drop table IF EXISTS wvp_jt_channel;
+create table IF NOT EXISTS wvp_jt_channel
+(
+    id               serial primary key,
+    terminal_db_id   integer,
+    channel_id       integer,
+    has_audio        bool default false,
+    name             character varying(255),
+    update_time      character varying(50) not null,
+    create_time      character varying(50) not null,
+    constraint uk_jt_channel_id_device_id unique (terminal_db_id, channel_id)
+);
+
+/*报警信息表*/
+drop table IF EXISTS wvp_alarm;
+create table IF NOT EXISTS wvp_alarm
+(
+    id               serial primary key,
+    channel_id       integer,
+    description      character varying(255),
+    snap_path        character varying(255),
+    record_path      character varying(255),
+    longitude        double precision,
+    latitude         double precision,
+    alarm_type       integer,
+    alarm_time       bigint
+);
