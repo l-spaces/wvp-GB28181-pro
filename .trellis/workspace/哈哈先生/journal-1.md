@@ -329,3 +329,52 @@ web 菜单按角色过滤：登录落地 roleId 到 wvp_role cookie（auth.js �
 ### Next Steps
 
 - 按需推送到 二开/main
+
+## Session 10: 升级基线到 3.0.0 并补齐用户通道表脚本
+<!-- trellis-session: v=2 fp=3bea9e6c46ef30ac -->
+
+**Date**: 2026-10-28
+**Task**: 升级基线到 3.0.0 并补齐用户通道表脚本（`10-28-upgrade-baseline-300`）
+**Package**: wvp-pro
+**Branch**: `feature/upgrade-baseline-300`
+
+### Summary
+
+把 pom 版本从 2.7.4 改为 3.0.0，与上游 `源码/master` 对齐；补齐上游缺失的二开独有表 `wvp_user_channel` 到 `数据库/3.0.0/` 五个脚本（三方言 init + mysql/pg 两份 update）；docker 两条部署链路改指 3.0.0 建库脚本；同步 spec 中的版本判据。已在本地环境（192.168.1.100 / WSL2）实跑部署验证通过。
+
+### Main Changes
+
+- `pom.xml` 版本 `2.7.4` → `3.0.0`（仅此一行）
+- `数据库/3.0.0/初始化-{mysql,postgresql-kingbase,达梦}-3.0.0.sql` 末尾补 `wvp_user_channel`，各方言写法独立（MySQL `constraint ... unique`、PG `create unique index IF NOT EXISTS`、达梦 `int identity` + `DECLARE/SYSOBJECTS` drop 块）
+- `数据库/3.0.0/更新-{mysql,postgresql-kingbase}-3.0.0.sql` 追加 `20260909` 段（`create table IF NOT EXISTS`，无需存储过程）
+- 新建 `script/sql/初始化-mysql-3.0.0.sql`（源脚本 + 本地 `secret varchar(255)` 加宽修正）
+- `docker/docker-compose.yml`、`script/docker-compose.yml` 挂载改指 3.0.0
+- `script/README.md` 补数据卷说明（init 脚本仅首次启动生效）
+- `deployment-runbook.md`：产物名改 3.0.0；**修正 §3.4**——部署机 jar 是挂载而非 COPY 进镜像，换 jar 只需 `restart` 不需 `build`；补「`up -d` 不会重启 wvp」的坑
+- `database-guidelines.md`：把「已知脚本缺口」改写为「已补齐 + 每次合并需复查」
+- `upstream-merge-contract.md`：`§5 版本号策略` 改写为 3.0.0 基线 + 新增 §5.1 合并后复查命令
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| （待提交） | feat(db): 升级基线到 3.0.0 并补齐 wvp_user_channel 脚本 |
+
+### Testing
+
+- [OK] `mvn -DskipTests compile` BUILD SUCCESS（783 源文件）
+- [OK] `mvn -DskipTests package` → `wvp-pro-3.0.0-10280831.jar`，`git.build.version=3.0.0`，`static` 134 项
+- [OK] 三方言 `wvp_user_channel` 段与 `数据库/2.7.4/` 已上线脚本逐行 diff 完全一致
+- [OK] 本地环境部署：启动日志 `构建版本： 3.0.0`，Tomcat 18080，8.367s 启动
+- [OK] 接口验证：登录（MD5）、设备查询（total=1）、用户列表、`/api/user/channel/list`（表存在）、`/api/record/plan/query`（`start_time` 正常）
+- [OK] 首页 200 + 前端资源 200，ZLM 心跳无超时，稳定后 60s 无 ERROR
+- [WARN] 全量 init 脚本未空库实跑（线上有数据）；PG/Kingbase/达梦无环境，仅结构比对
+
+### Status
+
+[OK] **Completed**（待质量复核与提交）
+
+### Next Steps
+
+- 等待 trellis-check 复核结果
+- 提交到 `feature/upgrade-baseline-300` 后合回 `main`

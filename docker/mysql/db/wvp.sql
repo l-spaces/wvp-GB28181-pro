@@ -80,6 +80,24 @@ create table IF NOT EXISTS wvp_mobile_position
     create_time     character varying(50)
 );
 
+-- 上游历史表（旧结构），代码不使用，仅保持与上游脚本的结构包含关系
+drop table IF EXISTS wvp_device_mobile_position;
+create table IF NOT EXISTS wvp_device_mobile_position
+(
+    id              serial primary key,
+    device_id       character varying(50) not null,
+    channel_id      character varying(50) not null,
+    device_name     character varying(255),
+    time            character varying(50),
+    longitude       double precision,
+    latitude        double precision,
+    altitude        double precision,
+    speed           double precision,
+    direction       double precision,
+    report_source   character varying(50),
+    create_time     character varying(50)
+);
+
 drop table IF EXISTS wvp_device_channel;
 create table IF NOT EXISTS wvp_device_channel
 (

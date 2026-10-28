@@ -12,7 +12,7 @@ script/
 │   ├── application.yml       激活 docker profile
 │   ├── application-docker.yml  WVP 核心配置（环境变量占位符版）
 │   └── Dockerfile            镜像定义（业务文件为挂载，一般无需重建）
-├── sql/初始化-mysql-2.7.4.sql  首次启动自动建表（secret 列已扩为 varchar(255)）
+├── sql/初始化-mysql-3.0.0.sql  首次启动自动建表（secret 列已扩为 varchar(255)）
 ├── zlm/config.ini            ZLMediaKit 配置（官方模板 + 最小定制）
 ├── redis/conf/redis.conf     Redis 配置（requirepass cy*889900）
 └── nginx/                    与 WVP 无关的历史遗留文件，可删除
@@ -100,6 +100,11 @@ docker compose restart zlmediakit  # 只改了 zlm/config.ini
 > 原则上用 `up -d` 而不是 `restart`：up -d 遵守 depends_on 健康检查顺序；
 > 全量 restart 是并行的，WVP 可能比 MySQL 先起而报一次启动失败（会自动恢复，无害）。
 
+> **建库脚本只在首次启动生效**：`sql/初始化-mysql-3.0.0.sql` 仅当 `mysql/data/` 为空时执行。
+> 已有数据卷不会因换脚本而重建，存量库需从**仓库根**取 `数据库/3.0.0/更新-mysql-3.0.0.sql`
+> 上传到服务器后手工执行（该文件不在本部署包内）；
+> 要按新脚本重建则先停服务并清空 `mysql/data/`（会丢失全部业务数据）。
+
 ## 七、公网部署
 
 1. 放行端口：**8160/tcp+udp、10000/udp、18978/tcp**（必须）、**8970/udp+tcp**（WebRTC 播放需要）；18080/tcp 视需要
@@ -112,8 +117,9 @@ docker compose restart zlmediakit  # 只改了 zlm/config.ini
 1. **MySQL 密码**：compose 里 `MYSQL_PASSWORD` 与 `SPRING_DATASOURCE_PASSWORD` 必须一致。
 2. **Redis 数据目录权限**：官方镜像以 UID 999 运行，数据目录需 `chown -R 999:999`
    （或确保目录 777），否则报 `Can't open append-only dir: Permission denied`。
-3. **secret 长度**：`wvp_media_server.secret` 列已扩为 varchar(255)，超过 50 位的
-   密钥会导致 WVP 启动时 `Data too long for column 'secret'`（SQL 文件已同步修复）。
+3. **secret 长度**：`wvp_media_server.secret` 列在**本部署副本** `sql/初始化-mysql-3.0.0.sql`
+   中已扩为 varchar(255)；仓库源脚本 `数据库/3.0.0/初始化-mysql-3.0.0.sql` 仍是上游的 50，
+   不要直接拿源脚本建库，否则超过 50 位的密钥会报 `Data too long for column 'secret'`。
 4. **WVP_HOST**：只能是 0.0.0.0 或容器内真实 IP。填宿主机/公网 IP 会 SIP 绑定失败。
 5. **NAT 后的设备**：摄像头必须用 UDP 注册；TCP 模式 WVP 需主动连接设备地址，
    NAT 下不可达。

@@ -17,7 +17,7 @@ services:
       # 配置挂载
       - ./mysql/conf/:/etc/mysql/conf.d/
       # 首次启动建表脚本（相对 compose 目录，随 script 目录一起上传）
-      - ./sql/初始化-mysql-2.7.4.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./sql/初始化-mysql-3.0.0.sql:/docker-entrypoint-initdb.d/init.sql:ro
     command:
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_general_ci

@@ -70,7 +70,7 @@ git grep -n 'inviteKeyCreateTimeMap\|cleanStaleInviteKeys\|buildSubStreamKey' --
 | `default_password` 列被上游从 2.7.4 初始化脚本删除 | 新装库改密报 `Unknown column` | 补回列定义与 INSERT 列 |
 | `start`/`stop` → `start_time`/`stop_time` 只在 3.0.0 脚本改名 | 用 2.7.4 建库后录像计划查询报错 | 三份初始化脚本改列名 + 两份更新脚本加 `20261019` 段 |
 | `wvp_user_channel` 在任何 3.0.0 脚本中都不存在 | 通道权限过滤全线报 `table doesn't exist` | 补入目标版本的全部初始化/更新脚本 |
-| `pom.xml` 版本被上游自动改成 3.0.0 | jar 名与部署脚本不匹配 | 按基线版本改回 |
+| 上游改动 `pom.xml` 的 `<version>` 且与本地基线不一致 | jar 名与数据库脚本版本不匹配 | 以本地基线为准改回，见 §5 |
 | `script/sql/` 是部署实际挂载的副本，上游没有该目录 | 部署建库缺列/缺表 | 每次合并后手工同步 |
 | 前端未重建 | 旧资源被打进 jar；旧前端提交旧字段导致数据被静默清空 | 先 `cd web && npm run build:prod` 再 `mvn package` |
 
@@ -84,15 +84,28 @@ git grep -n 'inviteKeyCreateTimeMap\|cleanStaleInviteKeys\|buildSubStreamKey' --
 
 ## 5. 版本号策略
 
-`pom.xml` 的 `<version>` 是**二开基线版本**，不随上游走。
-当前基线为 `2.7.4`；上游已是 `3.0.0`。
+`pom.xml` 的 `<version>` 是**二开基线版本**。2026-10-28 起基线已切到 `3.0.0`，与上游 `源码/master` 一致。
 
-切换基线的完整代价（切之前必须评估）：
+上游每次合并仍会自动带入 `pom.xml` 版本号——现在带入的就是 `3.0.0`，无需手工改回。
+**例外**：若上游发布 `3.1.0` 等新版本而本地数据库尚未迁移到位，合并后需把版本号改回本地实际基线，
+否则产物名与数据库脚本版本会不一致。
 
-1. 三方言初始化 + 两套更新脚本都要补 `wvp_user_channel`
-2. `secret` 列宽度需扩到 `varchar(255)`（部署副本已是 255，`数据库/2.7.4` 仍是 50）
-3. 现网库需要执行迁移
-4. 脚本命名、README、部署文档全部要改
+基线切换已完成的事项（后续再切换时参考）：
+
+1. 三方言初始化 + 两套更新脚本都已补 `wvp_user_channel`
+2. `secret` 列宽度：部署副本（`script/sql/`）是 `varchar(255)`，`数据库/3.0.0` 源脚本仍是 50，
+   由副本承载加宽修正
+3. 现网库需执行 `数据库/3.0.0/更新-*.sql`
+4. 脚本命名、README、部署文档已同步
+
+## 5.1 每次合并后必须复查
+
+`wvp_user_channel` 是二开独有表，上游脚本不含它。合并上游后执行：
+
+```bash
+grep -c wvp_user_channel 数据库/3.0.0/初始化-*.sql 数据库/3.0.0/更新-*.sql
+# 每个文件应 ≥ 1；为 0 说明上游覆盖了脚本，需重新补表
+```
 
 ## 6. 提交前检查清单
 

@@ -119,10 +119,9 @@ int batchUpsert(@Param("channels") List<CommonGBChannel> channels);
   PG/Kingbase 用 `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` / `DO $$ ... TO_REGCLASS(...)`。
 - H2 另有 `数据库/2.7.4-h2/h2-schema.sql` + `h2-data.sql`，仅在 `application-dev.yml` 中被注释掉的
   `spring.sql.init` 引用；H2 建表要与之保持同构。
-- 已知脚本缺口（**未确认是上游遗漏还是待补**）：`wvp_user_channel` 在 `数据库/2.7.4/`、
-  `数据库/2.7.4-h2/h2-schema.sql`、`docker/mysql/db/wvp.sql` 中都有，但
-  `数据库/3.0.0/` 的 5 个脚本**完全没有该表**，而 `storager/dao/UserChannelMapper` 依赖它。
-  新建 3.0.0 库后通道权限过滤相关接口会失败，需先补建表脚本。
+- `wvp_user_channel` 是二开独有表（上游没有），已在 `数据库/2.7.4/`、`数据库/2.7.4-h2/h2-schema.sql`、
+  `docker/mysql/db/wvp.sql` 及 `数据库/3.0.0/` 三方言初始化 + 两份更新脚本中补齐。
+  **下次从上游合并时该表仍会被上游脚本覆盖/遗漏**，合并后需复查 `数据库/3.0.0/` 五个脚本是否仍含该表。
 - 达梦只有初始化脚本，`2.7.4` 与 `3.0.0` 均无 `更新-达梦-*.sql`；达梦升级路径**未确认**。
 
 ---
