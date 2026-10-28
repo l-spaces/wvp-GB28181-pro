@@ -31,10 +31,18 @@ const slots = ref<Slot[]>([])
 const activeSlotIndex = ref(0)
 const fullscreenIndex = ref<number | null>(null)
 
+/** 分屏网格：6/12 为非正方形布局（6=3×2、12=4×3），行列需分别指定 */
 const gridStyle = computed(() => {
-  const cols = { 1: '1fr', 4: 'repeat(2,1fr)', 9: 'repeat(3,1fr)', 16: 'repeat(4,1fr)' } as Record<number, string>
-  const g = cols[props.count] ?? 'repeat(3,1fr)'
-  return { gridTemplateColumns: g, gridTemplateRows: g }
+  const grids: Record<number, { cols: string; rows: string }> = {
+    1: { cols: '1fr', rows: '1fr' },
+    4: { cols: 'repeat(2,1fr)', rows: 'repeat(2,1fr)' },
+    6: { cols: 'repeat(3,1fr)', rows: 'repeat(2,1fr)' },
+    9: { cols: 'repeat(3,1fr)', rows: 'repeat(3,1fr)' },
+    12: { cols: 'repeat(4,1fr)', rows: 'repeat(3,1fr)' },
+    16: { cols: 'repeat(4,1fr)', rows: 'repeat(4,1fr)' },
+  }
+  const g = grids[props.count] ?? grids[9]
+  return { gridTemplateColumns: g.cols, gridTemplateRows: g.rows }
 })
 
 // ---------- 播放器实例管理（每格独立） ----------
@@ -289,8 +297,8 @@ watch(
   { immediate: true },
 )
 
-function toggleCardFullscreen(e: MouseEvent) {
-  fullscreenIndex.value = fullscreenIndex.value === null ? 0 : null
+function toggleCardFullscreen(index: number, e: MouseEvent) {
+  fullscreenIndex.value = fullscreenIndex.value === index ? null : index
   e.stopPropagation()
 }
 
@@ -329,7 +337,7 @@ onBeforeUnmount(() => {
         <div class="v-top">
           <span class="status-dot" :class="{ off: slot.channel.status !== 'ON' }"></span>
           <b>{{ slot.channel.name }}</b>
-          <button class="mini-btn" title="全屏" @click="toggleCardFullscreen">⛶</button>
+          <button class="mini-btn" title="全屏" @click="toggleCardFullscreen(i, $event)">⛶</button>
           <button v-if="slot.stream" class="mini-btn stop" title="停止" @click="stopSlot(i)">⏹</button>
         </div>
         <div class="quality" :class="{ 'ptz-tag': (slot.channel.ptzType ?? 0) > 0 }">{{ (slot.channel.ptzType ?? 0) > 0 ? 'PTZ' : 'HD' }}</div>

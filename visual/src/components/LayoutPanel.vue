@@ -8,10 +8,12 @@ const emit = defineEmits<{ 'update:count': [count: number] }>()
 const { notify } = useToast()
 
 const layouts = [
-  { count: 1, label: '1分屏', cells: 1 },
-  { count: 4, label: '4分屏', cells: 2 },
-  { count: 9, label: '9分屏', cells: 3 },
-  { count: 16, label: '16分屏', cells: 4 },
+  { count: 1, label: '1分屏', cols: 1, rows: 1 },
+  { count: 4, label: '4分屏', cols: 2, rows: 2 },
+  { count: 6, label: '6分屏', cols: 3, rows: 2 },
+  { count: 9, label: '9分屏', cols: 3, rows: 3 },
+  { count: 12, label: '12分屏', cols: 4, rows: 3 },
+  { count: 16, label: '16分屏', cols: 4, rows: 4 },
 ]
 
 const currentLabel = computed(() => `当前：${props.count}分屏`)
@@ -33,9 +35,12 @@ function setGrid(n: number) {
         :class="{ active: l.count === count }"
         @click="setGrid(l.count)"
       >
-        <span class="grid-icon" :style="{ gridTemplateColumns: `repeat(${l.cells}, 1fr)` }">
+        <span
+          class="grid-icon"
+          :style="{ gridTemplateColumns: `repeat(${l.cols}, 1fr)`, gridTemplateRows: `repeat(${l.rows}, 1fr)` }"
+        >
           <span
-            v-for="c in l.cells * l.cells"
+            v-for="c in l.cols * l.rows"
             :key="c"
             class="cell"
           ></span>
@@ -58,7 +63,7 @@ function setGrid(n: number) {
 
 .split-buttons {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 
@@ -76,7 +81,7 @@ function setGrid(n: number) {
   font-size: 13px;
 }
 
-/* 迷你分屏示意：1格 / 2x2 / 3x3 / 4x4 小方格 */
+/* 迷你分屏示意：1格 / 2x2 / 3x2 / 3x3 / 4x3 / 4x4 小方格 */
 .grid-icon {
   display: grid;
   gap: 2px;

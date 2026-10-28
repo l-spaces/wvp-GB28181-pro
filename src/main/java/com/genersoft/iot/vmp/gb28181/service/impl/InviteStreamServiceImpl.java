@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.dao.DeviceMapper;
 import com.genersoft.iot.vmp.gb28181.service.IInviteStreamService;
 import com.genersoft.iot.vmp.media.event.media.MediaDepartureEvent;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -32,6 +33,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class InviteStreamServiceImpl implements IInviteStreamService {
 
     private final Map<String, List<ErrorCallback<StreamInfo>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
+
+    /**
+     * 记录每个 invite key 的创建时间，用于清理“有请求在途但回调永远不来”的僵尸 key。
+     * onceAndFirst 只在 call() 里 remove，若某次 invite 的 200OK/失败/超时回调全部丢失，
+     * 这个 key 会永久残留，之后该通道所有点播都被判定为“已有请求在途”而无法发起 INVITE。
+     */
+    private final Map<String, Long> inviteKeyCreateTimeMap = new ConcurrentHashMap<>();
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -254,6 +262,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         AtomicBoolean first = new AtomicBoolean(false);
         inviteErrorCallbackMap.computeIfAbsent(key, k -> {
             first.set(true);
+            inviteKeyCreateTimeMap.put(k, System.currentTimeMillis());
             List<ErrorCallback<StreamInfo>> callbacks = new CopyOnWriteArrayList<>();
             callbacks.add(callback);
             return callbacks;
@@ -263,6 +272,8 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
             if (callbacks != null) {
                 callbacks.add(callback);
             }
+            // 已有在途请求时刷新时间戳会掩盖卡死，这里只保证旧 key 有记录
+            inviteKeyCreateTimeMap.putIfAbsent(key, System.currentTimeMillis());
         }
         return first.get();
     }
@@ -313,6 +324,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Override
     public void call(InviteSessionType type, Integer channelId, String stream, int code, String msg, StreamInfo data) {
         String key = buildSubStreamKey(type, channelId, stream);
+        inviteKeyCreateTimeMap.remove(key);
         List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.remove(key);
         if (callbacks == null || callbacks.isEmpty()) {
             return;
@@ -363,6 +375,46 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         }
         redisTemplate.opsForHash().put(key, objectKey, inviteInfoInDb);
         return inviteInfoInDb;
+    }
+
+    /**
+     * 清理“有请求在途但回调永远不来”的僵尸 key。
+     * 触发条件：key 创建时间超过 playTimeout 的 3 倍仍未收到任何回调。
+     * 清理时向等待中的回调补发超时错误，避免它们继续等待到 DeferredResult 超时。
+     */
+    @Scheduled(fixedRate = 5000)
+    public void cleanStaleInviteKeys() {
+        if (inviteKeyCreateTimeMap.isEmpty()) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        long ttl = userSetting.getPlayTimeout() * 3L;
+        for (Map.Entry<String, Long> entry : inviteKeyCreateTimeMap.entrySet()) {
+            String key = entry.getKey();
+            Long createTime = entry.getValue();
+            if (createTime == null || now - createTime <= ttl) {
+                continue;
+            }
+            Long removed = inviteKeyCreateTimeMap.remove(key);
+            if (removed == null) {
+                continue;
+            }
+            List<ErrorCallback<StreamInfo>> callbacks = inviteErrorCallbackMap.remove(key);
+            log.warn("[清理僵尸点播] key={}, 已等待 {}ms, 回调数={}", key, now - createTime,
+                    callbacks == null ? 0 : callbacks.size());
+            if (callbacks != null) {
+                for (ErrorCallback<StreamInfo> callback : callbacks) {
+                    if (callback != null) {
+                        try {
+                            callback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
+                                    InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null);
+                        } catch (Exception e) {
+                            log.error("[清理僵尸点播] 回调异常 key={}", key, e);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Scheduled(fixedRate = 10000)   //定时检测,清理错误的redis数据,防止因为错误数据导致的点播不可用

@@ -24,7 +24,8 @@ export async function wvpGet<T>(
   path: string,
   query?: Record<string, string | number | undefined>,
 ): Promise<T> {
-  const url = new URL(API_BASE_URL + path)
+  // 兼容两种配置：绝对地址（http://ip:port）或相对前缀（/prod-api，由反向代理转发）
+  const url = new URL(API_BASE_URL + path, window.location.origin)
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined) url.searchParams.set(key, String(value))

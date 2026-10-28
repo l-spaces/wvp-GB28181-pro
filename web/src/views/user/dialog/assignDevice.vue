@@ -112,8 +112,7 @@ export default {
       this.treeData.forEach(deviceNode => {
         this.$store.dispatch('device/queryChannels', [deviceNode.deviceId, {
           page: 1,
-          count: 1000000,
-          channelType: false
+          count: 1000000
         }]).then(data => {
           this.appendChildren(deviceNode, data.list)
           this.channelLoaded(finishedCount + 1, total)

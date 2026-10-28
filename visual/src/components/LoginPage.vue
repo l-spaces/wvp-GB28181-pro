@@ -35,7 +35,7 @@ async function onSubmit() {
       <div class="login-head">
         <img :src="cameraIcon" class="login-logo" alt="logo" />
         <div>
-          <h1>智慧安防监控平台</h1>
+          <h1>引通济安监控平台</h1>
           <p>SECURITY SURVEILLANCE CENTER</p>
         </div>
       </div>
