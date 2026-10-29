@@ -69,5 +69,9 @@ user-settings:
     device-register-time-ttl-hours: 3
     device-keepalive-time-max-count: 100
     device-keepalive-time-ttl-hours: 1
+    # 截图走 ffmpeg 命令行而非 ZLM 内部解码通道。
+    # H265 流下 async=1 会解码失败(avcodec_send_packet)，getSnap 等满 timeout_sec
+    # 才返回 logo 占位图，而 WVP 的 OkHttp 读超时只有 10s，必然超时无图。
+    snap-async: false
     # JWT 密钥文件，挂载在 named volume wvp-config 中持久化
     jwkFile: /opt/wvp/config/jwk.json
