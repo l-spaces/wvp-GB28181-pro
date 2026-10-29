@@ -152,13 +152,13 @@ scp target/wvp-pro-3.0.0-XXXX.jar root@192.168.1.100:/home/docker/wvp2/jar/wvp.j
 > 幂等的边界：对象已存在时**整表/整索引跳过**，不会补齐结构差异（如某库的
 > `wvp_user_channel` 缺 `uk_user_channel`），此段不会修复。
 
-`数据库/2.7.4/更新-mysql-2.7.4.sql` 的 `wvp_20260417` 段首行：
+`数据库/2.7.4/更新-mysql-2.7.4.sql` 的 `wvp_20260417` 段（存储过程，ALTER 在文件第 187 行）：
 
 ```sql
-ALTER TABLE wvp_device_mobile_position ADD timestamp BIGINT ...;
+ALTER TABLE wvp_device_mobile_position ADD timestamp BIGINT COMMENT '上报时间';
 ```
 
-**没有 `IF EXISTS` 保护**，而该表在更早版本已改名为 `wvp_mobile_position`。整份脚本执行到这里会报错中止：
+**只有列级 `IF NOT EXISTS` 判断，没有表级保护**，而该表在更早版本已改名为 `wvp_mobile_position`——表已改名时子查询为空、`NOT EXISTS` 成立，ALTER 仍会执行并报 1146，整份脚本执行到这里中止：
 
 ```
 ERROR 1146 (42S02): Table 'wvp2.wvp_device_mobile_position' doesn't exist
@@ -253,7 +253,7 @@ docker compose ps
 ### 4.2 三大健康标志
 
 ```bash
-docker compose logs wvp | grep -E 'SIP SERVER 启动成功|Started VManageBootstrap|ZLM-连接成功'
+docker compose logs wvp | grep -E 'SIP SERVER\] (tcp|udp)://.*启动成功|Started VManageBootstrap|ZLM-连接成功'
 ```
 
 **三条都必须出现**。`ZLM-连接成功` 形如：

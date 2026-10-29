@@ -164,7 +164,7 @@ if (sourceChannelPlayService == null) {
 
 存量命名反例（不要模仿，也不要顺手全局改名）：
 
-- `service/impl/RoleServerImpl.java:13` —— 应为 `RoleServiceImpl`（`Server` 拼写错误）。
+- `service/impl/RoleServerImpl.java:12` —— 应为 `RoleServiceImpl`（`Server` 拼写错误）。
 - `jt1078/service/Ijt1078Service.java`、`Ijt1078PlayService.java` —— 接口名 `I` 后未大写（对照 `IPlayService`）。
 - `web/custom/service/CameraChannelService.java:42` —— 服务类没有 `I*Service` 接口，且直接 `implements CommandLineRunner`（注意：同目录的 `SyServiceImpl.java:23` 实现的是 `service/IMapService`，属于正常形态）。
 - `gb28181/controller/DeviceConfig.java`、`DeviceControl.java`、`DeviceQuery.java` —— 是 `@RestController` 但没有 `Controller` 后缀。

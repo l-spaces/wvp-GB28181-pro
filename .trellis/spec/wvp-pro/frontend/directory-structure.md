@@ -95,8 +95,8 @@ web/
 
 | 前端 api 文件 | URL 前缀 | 后端 Controller |
 |---|---|---|
-| `api/device.js` | `/api/device/query`、`/api/device/control` | `gb28181/controller/DeviceQuery.java`、`DeviceControl.java` |
-| `api/commonChannel.js` | `/api/common/channel` | `gb28181/controller/ChannelController.java` |
+| `api/device.js` | `/api/device/query`、`/api/device/control`、`/api/device/config` | `gb28181/controller/DeviceQuery.java`、`DeviceControl.java`、`DeviceConfig.java` |
+| `api/commonChannel.js` | `/api/common/channel`、`/api/common/channel/front-end` | `gb28181/controller/ChannelController.java`；`front-end` 子路径由 `ChannelFrontEndController.java` 处理 |
 | `api/frontEnd.js` | `/api/front-end` | `gb28181/controller/PtzController.java` |
 | `api/play.js` / `api/playback.js` | `/api/play` / `/api/playback` | `gb28181/controller/PlayController.java` / `PlaybackController.java` |
 | `api/gbRecord.js` | `/api/gb_record` | `gb28181/controller/GBRecordController.java` |
@@ -106,7 +106,7 @@ web/
 | `api/recordPlan.js` | `/api/record/plan` | `vmanager/recordPlan/RecordPlanController.java` |
 | `api/alarm.js` | `/api/alarm` | `vmanager/alarm/AlarmController.java` |
 | `api/user.js` / `api/role.js` / `api/userApiKey.js` | `/api/user`、`/api/role`、`/api/userApiKey` | `vmanager/user/UserController.java`、`RoleController.java`、`UserApiKeyController.java` |
-| `api/jtDevice.js` | `/api/jt1078` | `jt1078/controller/JT1078Controller.java` |
+| `api/jtDevice.js` | `/api/jt1078`、`/api/jt1078/terminal/*` | `jt1078/controller/JT1078Controller.java`；`terminal/*` 由 `jt1078/controller/JT1078TerminalController.java` 处理 |
 | `api/streamProxy.js` / `api/streamPush.js` | `/api/proxy` / `/api/push` | `streamProxy/controller/StreamProxyController.java` / `streamPush/controller/StreamPushController.java` |
 | `api/server.js` / `api/log.js` | `/api/server` / `/api/log` | `vmanager/server/ServerController.java` / `vmanager/log/LogController.java` |
 

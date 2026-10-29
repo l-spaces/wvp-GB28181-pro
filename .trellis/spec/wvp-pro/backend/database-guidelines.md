@@ -41,7 +41,8 @@ public interface CommonGBChannelMapper {
 ```
 
 - 多参数（≥2）**必须**写 `@Param`；单参数可省略，但 Provider 场景依赖 `Map` key，实际仍需 `@Param`
-  （`ChannelProvider.queryByDataId` 读 `params.get("dataType")` / `params.get("dataDeviceId")`）。
+  （`ChannelProvider.queryByDataId` 的 SQL 用 `#{dataType}` / `#{dataDeviceId}`，Map key 来自 Mapper 上的
+  `@Param("dataType")` / `@Param("dataDeviceId")`，见 `CommonGBChannelMapper.java:588`）。
 - 插入回填自增主键用 `@Options(useGeneratedKeys = true, keyProperty = "gbId", keyColumn = "id")`
   （`CommonGBChannelMapper.insert` 回填 `gbId`；`DeviceMapper.add`、`GroupMapper`、`RecordPlanMapper` 回填 `id`）。
 - **PostgreSQL / 达梦不要依赖 `useGeneratedKeys` 取序列值**，用 `@SelectKey(databaseId = ...)`：
@@ -71,7 +72,7 @@ public interface CommonGBChannelMapper {
 - 空集合语义在 Controller/Service 层兜住：`ChannelController` 里非管理员且无关联通道时直接
   `return PageInfo.emptyPageInfo();`，**不把空集合传进 mapper**。
 - 存量反例（不要模仿）：`ChannelProvider.queryListInBox`、`queryListInCircleFor*`、`queryListInPolygonFor*`
-  直接 `for (CameraGroup group : groupList)` 无判空；`queryByIds` 无判空，
+  直接 `for (int i = 0; i < groupList.size(); i++)` 无判空（`ChannelProvider.java:723/748/772/796/829/867/903`）；`queryByIds` 无判空，
   空列表会生成非法 `in ( )`。`queryByGbDeviceIds` 虽然也遍历集合、空集合会生成 `in ( )`，
   但绑定的是 `#{deviceIds[0]}` 占位符（不会拼原始值）。
 - 支持 `<foreach>` 的两种形态都要注意：注解内联的 `<script>` 片段
@@ -98,8 +99,11 @@ int batchUpsert(@Param("channels") List<CommonGBChannel> channels);
   - `*CommonChannelUpsertProvider`（`gb_` 字段）→ `CommonGBChannelMapper.batchUpsert`
   - `MysqlChannelUpsertProvider` / `PostgresStyleUpsertProvider` / `H2ChannelUpsertProvider` /
     `DmChannelUpsertProvider`（旧字段）→ `DeviceChannelMapper.batchUpsert`
-  - 语法差异：MySQL `ON DUPLICATE KEY UPDATE`、PG/Kingbase `ON CONFLICT (gb_device_id) DO UPDATE`、
-    H2 `MERGE ... KEY (gb_device_id)`、达梦 `MERGE INTO ... USING (SELECT ... UNION ALL)`。
+  - 语法差异（新 `gb_` 一套，冲突键 `gb_device_id`，见 `PostgresStyleCommonChannelUpsertProvider.java:27`、
+    `H2CommonChannelUpsertProvider.java:17`）：MySQL `ON DUPLICATE KEY UPDATE`、
+    PG/Kingbase `ON CONFLICT (gb_device_id) DO UPDATE`、H2 `MERGE ... KEY (gb_device_id)`、
+    达梦 `MERGE INTO ... USING (SELECT ... UNION ALL)`；旧字段一套的冲突键是
+    `(data_device_id, device_id)`（`PostgresStyleUpsertProvider.java:23`、`H2ChannelUpsertProvider.java:15`）。
 - 几何查询要改 5 个 databaseId：`queryListInCircle` / `queryListInPolygon` 的
   `mysql`+`h2` 共用 `ChannelProvider.queryListInCircleForMysql`（`ST_Distance_Sphere`），
   `kingbase`+`postgresql` 共用 `...ForKingBase`（`ST_DistanceSphere` / `ST_MakePoint`），
@@ -146,8 +150,11 @@ int batchUpsert(@Param("channels") List<CommonGBChannel> channels);
 
 - 特别注意 `CommonGBChannel.gbId`：**名字带 gb，实际是数据库自增主键**，不是国标编码
   （`@Schema(description = "国标-数据库自增ID")`；SQL 中 `id as gb_id`）。国标编码在 `gbDeviceId`。
-- 表里的 `device_id` 是「所属设备的国标编码（String）」，`data_device_id` 是「来源设备主键（Integer）」，
-  两者不可互换。`device_id` 与 `data_device_id` 拼成唯一键：`uk_device_channel_source`。
+- 表里的 `device_id` 是「通道自己的国标编码（String）」（旧字段，等价于 `gb_device_id`：
+  `DeviceChannelProvider.java:155` 用 `coalesce(gb_device_id, device_id) = #{channelId}` 按通道编号匹配，
+  `ChannelProvider.java:26` 也是 `coalesce(gb_device_id, device_id) as gb_device_id`），
+  `data_device_id` 是「来源设备主键（Integer）」，所属设备只体现在后者，两者不可互换。
+  `device_id` 与 `data_device_id` 拼成唯一键：`uk_device_channel_source`。
 - `data_type` 取值用常量类 `common/enums/ChannelDataType`（`GB28181=1`、`STREAM_PUSH=2`、
   `STREAM_PROXY=3`、`JT_1078=200`），Java 里不要写裸数字；`channel_type` 默认 `0`，
   绝大多数查询都带 `channel_type = 0` 过滤。

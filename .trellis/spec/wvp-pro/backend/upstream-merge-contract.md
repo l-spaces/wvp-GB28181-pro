@@ -22,7 +22,7 @@ git fetch 源码 && git merge 源码/master
 git pull
 ```
 
-**禁止** `git push --all` / `git push --tags`：会重建已删除的 `二开/V2` 并推送 worktree 分支。
+**禁止** `git push --all` / `git push --tags`：会重建已删除的 `二开/V2`，并把本地独有分支一起推上去（当前为 `update/upstream-274`）。
 
 ## 2. 合并前必须做的预演
 
@@ -67,8 +67,8 @@ git grep -n 'inviteKeyCreateTimeMap\|cleanStaleInviteKeys\|buildSubStreamKey' --
 
 | 陷阱 | 症状 | 处理 |
 |---|---|---|
-| `default_password` 列被上游从 2.7.4 初始化脚本删除 | 新装库改密报 `Unknown column` | 补回列定义与 INSERT 列 |
-| `start`/`stop` → `start_time`/`stop_time` 只在 3.0.0 脚本改名 | 用 2.7.4 建库后录像计划查询报错 | 三份初始化脚本改列名 + 两份更新脚本加 `20261019` 段 |
+| `default_password` 列被上游从 2.7.4 的 mysql / postgresql-kingbase 初始化脚本删除（达梦仍保留） | 新装库改密报 `Unknown column` | 补回列定义与 INSERT 列 |
+| `start`/`stop` → `start_time`/`stop_time` 只在 3.0.0 脚本改名 | 用 2.7.4 建库后录像计划查询报错 | 三份 2.7.4 初始化脚本新增 `start_time`/`stop_time`（保留上游 `start`/`stop` 兼容列）+ 两份更新脚本加 `20261019` 段 |
 | `wvp_user_channel` 在任何 3.0.0 脚本中都不存在 | 通道权限过滤全线报 `table doesn't exist` | 补入目标版本的全部初始化/更新脚本 |
 | 上游改动 `pom.xml` 的 `<version>` 且与本地基线不一致 | jar 名与数据库脚本版本不匹配 | 以本地基线为准改回，见 §5 |
 | `script/sql/` 是部署实际挂载的副本，上游没有该目录 | 部署建库缺列/缺表 | 每次合并后手工同步 |

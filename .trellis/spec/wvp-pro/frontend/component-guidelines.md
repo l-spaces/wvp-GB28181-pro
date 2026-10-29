@@ -49,7 +49,9 @@ export default {
 - `name` 必填：177 个 `.vue` 中 169 个声明了 `name`。命名现状两种风格都存在：
   页面用 PascalCase（`AlarmManage`、`ChannelPlayer`）、通道/云台子组件带 `Ch` 前缀（`ChPtzPreset`、`ChPlayerPtzPanel`，`views/channel/common/ptzPreset.vue:17`）。
   新代码沿用 PascalCase 即可，不要新造前缀体系。
-- 局部注册一律 `components: { 局部名 }`，import 名与文件同名（`views/device/index.vue:14-17`）；模板里 PascalCase / kebab-case 都能用。
+- 局部注册一律 `components: { 局部名 }` 简写；模板里 PascalCase / kebab-case 都能用。import 名多数与文件同名，
+  但存量有 28 处别名（如 `views/device/index.vue:9-10` 把 `list.vue` 导入为 `deviceList`、
+  `views/platform/index.vue:145` 把 `edit.vue` 导入为 `platformEdit`），新代码建议同名。
 - **`name` 必须与路由 `name` 一致**：`KeepAlive` 的 `include` 取的是路由 name（`web/src/store/modules/tagsView.js:15-19`、`web/src/layout/components/AppMain.vue:4`），组件 `name` 与之不匹配时页面缓存静默失效。
   存量反例（不要模仿）：路由 `name: 'Channel'`（`web/src/router/index.js:82`）对应组件却叫 `ChannelList`（`web/src/views/channel/index.vue:193`）。
 - 存量反例（不要模仿）：

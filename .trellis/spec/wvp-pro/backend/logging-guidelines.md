@@ -8,7 +8,7 @@
 
 - 日志栈：SLF4J + Logback（Spring Boot 自带），唯一配置文件 `src/main/resources/logback-spring.xml`。
 - 本文中未写全路径的类名均位于 `src/main/java/com/genersoft/iot/vmp/` 下，冒号后为行号。
-- 业务代码统一用 Lombok `@Slf4j`：当前 224 个文件使用（共 783 个 Java 文件）。手工 `LoggerFactory.getLogger` 只有 11 个文件，都是 Lombok 覆盖不到的场景，如 `src/main/java/com/genersoft/iot/vmp/gb28181/conf/StackLoggerImpl.java`、`service/impl/LogServiceImpl.java`；新代码不要模仿。
+- 业务代码统一用 Lombok `@Slf4j`：当前 224 个文件使用（共 783 个 Java 文件）。手工 `LoggerFactory.getLogger` 只有 11 个文件，多数是 Lombok 覆盖不到的场景（如 `src/main/java/com/genersoft/iot/vmp/gb28181/conf/StackLoggerImpl.java`、`service/impl/LogServiceImpl.java` 需要取特定/root logger）；但其中 `media/abl/ABLMediaNodeServerService.java:46` 已加 `@Slf4j` 仍在 `:50` 重复声明 logger 并混用，`gb28181/controller/RegionController.java:26` 声明后全类 0 次使用（死代码）——这类不要模仿。
 - 生效级别来自 `logback-spring.xml` 的 `<root level="INFO">`，同时挂 `STDOUT`、`websocket`、`RollingFile` 三个 appender。`application*.yml` 里没有 `logging.level`；`src/main/resources/配置详情.yml` 的 `logging` 段只是配置展示样例（文件头注明"不可直接使用"）。要调级别改 logback 或启动参数，不要在业务代码里放宽级别。
 - 日志文件（`LOG_HOME=logs` 是相对路径，取决于启动工作目录）：
   - 业务日志 `logs/wvp-yyyy-MM-dd.%i.log`：单文件 20MB，保留 30 天（`<appender name="RollingFile">`）。
@@ -23,7 +23,7 @@
 
 ## Log Levels
 
-- `info`：生命周期与关键动作，一次请求 1～2 条。例：`PlayServiceImpl.java:480` `[点播成功]`、`:512` `[点播开始]`、`DialogTerminationServiceImpl.java:73` `[Dialog终止]`、`RegisterRequestProcessor.java:169` `[注册请求]`。
+- `info`：生命周期与关键动作，一次请求 1～2 条。例：`PlayServiceImpl.java:480` `[点播成功]`、`:512` `[点播开始]`、`RegisterRequestProcessor.java:169` `[注册请求]`。
 - `debug`：参数细节、逐条消息，生产默认不输出。例 `ChannelFrontEndController.java:49`、`DeviceConfig.java:31` 用 `if (log.isDebugEnabled())` 包裹 API 入参。
 - `warn`：可恢复、已兜底、但需要关注的异常。例 `PlayServiceImpl.java:360/369/379`（未找到可用 ZLM/通道）、`InviteStreamServiceImpl.java:503`（点播等待超时已回收）、`DialogTerminationServiceImpl.java:103`（BYE 发送失败）。
 - `error`：请求/任务失败且需要人工排查。例 `PlayServiceImpl.java:496`（回调异常并释放点播）、`GlobalExceptionHandler.java:32`（全局异常）。
@@ -61,7 +61,7 @@
 - 会话终止与 BYE：统一由 `DialogTerminationServiceImpl.java:73/103/165/228` 输出，清理动作必须带 `callId`/`stream` 才能追到具体会话。
 - 状态迁移与脏数据处理：如 `InviteStreamServiceImpl.java:245` 清理脏数据时输出 `key={}, value={}`。
 - 失败必须带上下文 + 完整堆栈（异常对象放最后），保证能按 `deviceId`/`channelId` 在 `logs/wvp-*.log` 中检索。
-- 安全事件：验签失败、Token 失效要记录，但只保留可公开标识。正例 `web/custom/conf/SignAuthenticationFilter.java:62/72/115` 打印 `appKey` 和 `requestURI`，从不打印 `secret` / `accessToken` 值。
+- 安全事件：验签失败、Token 失效要记录，但只保留可公开标识。正例 `web/custom/conf/SignAuthenticationFilter.java:62/72/115` 只打印 `appKey` 和 `requestURI`。**反例（不要模仿）**：同文件 `:127` 把整个 `beforeSign` 打进日志，而 `:123` 刚 `beforeSign.append(secret)`，`:94` 又把除 `sign` 外的全部请求参数（含 `accessToken`）拼入 `beforeSign`，签名失败分支会同时输出 `secret` 与 `accessToken` 明文。
 
 ---
 

@@ -71,7 +71,7 @@ export function validUsername(str) {
 }
 ```
 
-单测 `web/tests/unit/utils/validate.spec.js:4-7` 还把 `validUsername('xxxx') === true` 固化了。**不要把 validate.js 当作校验工具库使用**，真有需要就在组件内写 validator。
+单测 `web/tests/unit/utils/validate.spec.js:7` 断言的是 `validUsername('xxxx') === false`，与实现（`str.length >= 0` 恒为 true）相反，该用例实际会失败。**不要把 validate.js 当作校验工具库使用**，真有需要就在组件内写 validator。
 
 真实的表单校验全部内联在组件的 `rules` 里，用法固定：
 
@@ -149,7 +149,7 @@ queryDevices({ commit }, params) {
 
 - 唯一集中的字典：`web/src/main.js:42-47` 的 `Vue.prototype.$channelTypeList = { 1, 2, 3, 200 }`，对应后端 `src/main/java/com/genersoft/iot/vmp/common/enums/ChannelDataType.java:9-12`。新代码要加通道类型，必须同时改这两处。
 - 设备在线是 **boolean**：`Device.onLine`（`src/main/java/com/genersoft/iot/vmp/gb28181/bean/Device.java:86`），序列化后字段名 `onLine`。
-- 通道在线是 **字符串** `"ON"` / `"OFF"`：`CommonGBChannel.gbStatus`（`CommonGBChannel.java:81`，赋值 `:382`）。前端 36 处 `=== / !== 'ON'` 字面量比较（去掉 `MapComponent_bak.vue` 与注释后统计），散落在 `views/channel/index.vue:107-108,148-154,237`、`views/common/MapComponent.vue:171,180,415`、`views/common/GroupTree.vue:49,54,96,101` 等，**没有常量**。
+- 通道在线是 **字符串** `"ON"` / `"OFF"`：`CommonGBChannel.gbStatus`（`CommonGBChannel.java:81`，赋值 `:382`）。前端 36 处 `=== / !== 'ON'` 字面量比较（去掉 `MapComponent_bak.vue` 与注释后统计），散落在 `views/channel/index.vue:107-108,148-154,237`、`views/common/MapComponent.vue:171`、`views/common/GroupTree.vue:49,54,96,101` 等，**没有常量**（`MapComponent.vue:180` 比较的是 `'OFF'`，`:415` 是 mapbox style 里的 `'ON'` 字面量，均不计入这 36 处）。
 - 存量反例（不要模仿，并且是真实 bug）：`views/device/list.vue:118,127,140,260` 读 `scope.row.online`（小写 l），而后端字段是 `onLine`，永远 `undefined`，于是 `:disabled="scope.row.online===0"` 恒为 false。同文件 `:83,88,90` 用的是正确的 `onLine`。
 - 存量反例（不要模仿）：`views/dialog/channelMapInfobox.vue:13-14` 用 `channel.status === 1 / === 0` 数值判断在线，与其它页面的 `gbStatus === 'ON'` 不一致；`views/jtDevice/list.vue:82-83` 用 `scope.row.status` 真值判断（对应后端 `JTDevice.status` 是 `boolean`，这条本身没错，但说明「在线」在前端有数值/布尔/字符串三种表达，跨模块复制代码时极易搬错）。
 

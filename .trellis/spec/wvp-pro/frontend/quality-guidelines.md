@@ -66,7 +66,7 @@ export function queryDeviceSyncStatus(deviceId) {
   return request({ method: 'get', url: `/api/device/query/sync_status`, params: { deviceId } })
 }
 ```
-22 个 `web/src/api/*.js` 全部这样写。页面通过 Vuex action 调用：`web/src/views/device/list.vue:238-245` `this.$store.dispatch('device/queryDevices', {...}).then(data => ...)`，action 内部 `const { data } = response; resolve(data)`（`web/src/store/modules/device.js:40-48`；同文件 `:30-37` 的 `resolve(response)` 是唯一的分叉写法，新代码不要学）。
+22 个 `web/src/api/*.js` 全部这样写。页面通过 Vuex action 调用：`web/src/views/device/list.vue:238-245` `this.$store.dispatch('device/queryDevices', {...}).then(data => ...)`，action 内部 `const { data } = response; resolve(data)`（`web/src/store/modules/device.js:40-48`；同文件 `:30-37` 的 `resolve(response)` 与 `:90-99` 的 `resolve(result)` 是两处分叉写法，新代码不要学）。
 
 存量反例：`web/src/views/operations/showLog.vue:20` 和 `web/src/views/device/dialog/timeStatistics.vue:60` 直接 `import request from '@/utils/request'`，绕过了 api 层。
 

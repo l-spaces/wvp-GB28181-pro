@@ -55,8 +55,11 @@ create table wvp_user_channel (
 | 通道库主键 `channelDbId` | `wvp_device_channel.id` | `Integer` | 关联、过滤、播放/云台接口参数 |
 | 国标编号 | `device_id` / `gb_device_id` | `String`（如 `10000000001321010801`） | SIP 协议标识，**不可用于关联过滤** |
 
-- 过滤参数一律命名 `channelDbIds`（`List<Integer>`），SQL 只用 `dc.id` / `wdc.id` / `id`，**禁止**用 `device_id`。
-- `isFilterNeeded()` 契约：`SecurityUtils.getUserInfo()` 为 `null`（未登录/内部调用）或 `role.id == 1`（管理员）→ `false`（不过滤）；否则 `true`。
+- 过滤参数传的都是通道库主键集合（`List<Integer>`），命名以各链路现名为准：通道维度 `channelDbIds`、
+  设备维度 `deviceDbIds`（`gb28181/controller/DeviceQuery.java:99-107`）、报警 `channelIds`
+  （`storager/dao/AlarmMapper.java:40`）。SQL 只比较库主键列（`dc.id` / `wdc.id` / `id` / `wa.channel_id`），
+  **禁止**用国标 `device_id`。
+- `isFilterNeeded()` 契约：`SecurityUtils.getUserInfo()` 为 `null`（未登录/内部调用）、或 `getRole()` 为 `null`（角色缺失）、或 `role.id == 1`（管理员）→ `false`（不过滤）；其余（`role.id != 1`）→ `true`（`service/impl/UserChannelServiceImpl.java:45-52`）。
 - 空关联语义：非管理员且 `channelDbIds` 为空 → 直接返回 `PageInfo.emptyPageInfo()`（列表）/ 空 `List`（树）/ `ResourceBaseInfo(0,0)`（统计）；**绝不把空集合传入 mapper 的 foreach**。
 
 ### 4. Validation & Error Matrix
@@ -80,7 +83,7 @@ create table wvp_user_channel (
 ### 6. Tests Required
 
 - 过滤注入点（每个列表/树/统计接口）：非管理员关联 N → `total == N`；空关联 → `total == 0`；管理员 → 全量。断言点：分页 `total`、树分支含关联通道及其祖先节点、`ResourceBaseInfo.total`。
-- 鉴权：非管理员访问 `assign`/`list` → HTTP 返回 `403` 码。
+- 鉴权：非管理员访问 `assign`/`list` → 抛 `ControllerException(ErrorCode.ERROR403)`；HTTP 状态码为 **200**，响应体 `code=403`、`msg="无权限操作"`（`conf/GlobalExceptionHandler.java:96-100`）。**不要断言 HTTP 403**——现有测试写法见 `src/test/java/com/genersoft/iot/vmp/vmanager/cloudRecord/CloudRecordSessionControllerTest.java:173-175`（`status().isOk()` + `jsonPath("$.code").value(403)`）。
 - 级联：删除设备 / 目录同步移除通道后，`wvp_user_channel` 对应行被清除。
 - 回归：管理员各页面全量可见（`roleId==1` 不受影响）。
 
@@ -138,7 +141,7 @@ if (channelDbIds != null && !channelDbIds.isEmpty()) {
 | 通道列表（全部/行政区划/组织机构页签） | `ChannelController.queryList` / `queryListByCivilCode` / `queryListByCivilCodeForUnusual` / `queryListByParentId` / `queryListByParentForUnusual` | `channelDbIds` |
 | 控制台资源统计 | `ServerController.getResourceInfo` → `getUserDeviceOverview` / `getUserChannelOverview` | 关联集内部计算 |
 | 组织机构树 / 行政区划树 | `GroupServiceImpl` / `RegionServiceImpl` | 保留含关联通道的分支 + 其祖先节点 |
-| 报警列表 | `AlarmController` → `AlarmServiceImpl` | `channelDbIds` |
+| 报警列表 | `AlarmController` → `AlarmServiceImpl` | `channelIds` |
 | 录制计划 | `RecordPlanController` → `RecordPlanServiceImpl` | `channelDbIds` |
 
 > 陷阱记录：组织机构页签走 `/api/common/channel/parent/list`（`queryListByParentId`）与 `/parent/unusual/list`，**极易漏接**——树过滤做了、列表过滤忘了，会导致非管理员在组织机构页签看到全部通道。新增页签务必对照本清单。
